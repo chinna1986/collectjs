@@ -119,7 +119,7 @@ the time being
 		Collect.insert_css = function() {
 			var s = document.createElement('style');
 			s.innerText = ".highlight{" + this.highlight_css + "}" +
-				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 200px;padding: 5px 20px;background: #fff;z-index: 1000;overflow-y: scroll;font-family: sans-serif;font-size: 12px;}#collect_interface *{color: #222;}.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#selector_parts{line-height: 1.75em;}#selector_string{width: 400px;}.toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}.deltog{background:#efefef;padding: 2px;margin-right: 3px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;}.deltog:hover{background: #666;color: #efefef;cursor: pointer;}.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }.selector_group{border-width: 1px 0 1px 1px;border-style: solid;border-color: #777;background: #ddd;padding: 2px;}.off{text-decoration: line-through;opacity: 0.4;}";
+				".query_check {" + this.check_css + "}" + "{{collect.css}}";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
@@ -219,7 +219,7 @@ the time being
 		}
 
 		function setup_interface() {
-			var interface_html = '<!-- all elements need class=\"no_select\" to make sure they aren\'t selected while testing--><div class=\"no_select attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\" class=\"no_select\"><h2 class=\"no_select\">Selector</h2><p id=\"selector_parts\" class=\"no_select\"></p><p id=\"selector_curr\" class=\"no_select\"></p><p id=\"selector_count\" class=\"no_select\"></p><p id=\"selector_text\" class=\"no_select\"></p></section><section id=\"collect_options\" class=\"options no_select\"><h2 class=\"no_select\">Options</h2><button class=\"no_select\" id=\"off_button\">Off</button><button class=\"no_select\" id=\"close_selector\">Close</button><button class=\"no_select\" id=\"move_position\">Move</button></section></div>';
+			var interface_html = '{{collect.html}}';
 
 			$(interface_html).appendTo('body');
 			var events_on = true;
