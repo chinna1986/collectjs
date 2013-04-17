@@ -94,11 +94,14 @@ the time being
 				/*
 				ignore if a part of the collect_interface div
 				*/
+				event.stopPropagation();
+				//	let the event happen for input elements
+				if (this.tagName !== 'INPUT'){
+					event.preventDefault();
+				}
 				if ( this === null || $(this).hasClass('no_select') ) {
 					return;
 				}
-				event.preventDefault();
-				event.stopPropagation();
 				var long_selector = '';
 				/*
 				when clicking on an option, 'this' is the select element, so use the first child
@@ -180,6 +183,9 @@ the time being
 		returns the html code for the ele argument
 		*/
 		function get_element_html(ele){
+			if (!ele){
+				return '';
+			}
 			var holder = document.createElement('div'),
 				copy = ele.cloneNode(true);
 			$(copy).removeClass('query_check').removeClass('highlight');
@@ -202,9 +208,10 @@ the time being
 				test_selector,
 				count = 0,
 				toggle_on = true,
-				ignored_tags = ['TABLE', 'TBODY', 'TR','TD'];
+				ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
+				ignore_tables = !$('#tables').is(':checked');
 			while( ele.tagName !== "BODY" ){
-				if ( ignored_tags.indexOf( ele.tagName ) > -1 ) {
+				if ( ignore_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
 					ele = ele.parentElement;
 					continue;
 				}
@@ -219,7 +226,7 @@ the time being
 		}
 
 		function setup_interface() {
-			var interface_html = '<!-- all elements need class=\"no_select\" to make sure they aren\'t selected while testing--><div class=\"no_select attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\" class=\"no_select\"><h2 class=\"no_select\">Selector</h2><p id=\"selector_parts\" class=\"no_select\"></p><p id=\"selector_curr\" class=\"no_select\"></p><p id=\"selector_count\" class=\"no_select\"></p><p id=\"selector_text\" class=\"no_select\"></p></section><section id=\"collect_options\" class=\"options no_select\"><h2 class=\"no_select\">Options</h2><button class=\"no_select\" id=\"off_button\">Off</button><button class=\"no_select\" id=\"close_selector\">Close</button><button class=\"no_select\" id=\"move_position\">Move</button></section></div>';
+			var interface_html = '<!-- all elements need class=\"no_select\" to make sure they aren\'t selected while testing--><div class=\"no_select attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\" class=\"no_select\"><h2 class=\"no_select\">Selector</h2><p id=\"selector_parts\" class=\"no_select\"></p><p id=\"selector_curr\" class=\"no_select\"></p><p id=\"selector_count\" class=\"no_select\"></p><p id=\"selector_text\" class=\"no_select\"></p></section><section id=\"collect_options\" class=\"options no_select\"><h2 class=\"no_select\">Options</h2><button class=\"no_select\" id=\"off_button\">Off</button><button class=\"no_select\" id=\"close_selector\">Close</button><button class=\"no_select\" id=\"move_position\">Move</button><p class=\"no_select\"><label class=\"no_select\" for=\"tables\">Include Table Elements</label><input type=\"checkbox\" class=\"no_select\" name=\"tables\" id=\"tables\" /></p></section></div>';
 
 			$(interface_html).appendTo('body');
 			var events_on = true;

@@ -94,11 +94,14 @@ the time being
 				/*
 				ignore if a part of the collect_interface div
 				*/
+				event.stopPropagation();
+				//	let the event happen for input elements
+				if (this.tagName !== 'INPUT'){
+					event.preventDefault();
+				}
 				if ( this === null || $(this).hasClass('no_select') ) {
 					return;
 				}
-				event.preventDefault();
-				event.stopPropagation();
 				var long_selector = '';
 				/*
 				when clicking on an option, 'this' is the select element, so use the first child
@@ -180,6 +183,9 @@ the time being
 		returns the html code for the ele argument
 		*/
 		function get_element_html(ele){
+			if (!ele){
+				return '';
+			}
 			var holder = document.createElement('div'),
 				copy = ele.cloneNode(true);
 			$(copy).removeClass('query_check').removeClass('highlight');
@@ -202,9 +208,10 @@ the time being
 				test_selector,
 				count = 0,
 				toggle_on = true,
-				ignored_tags = ['TABLE', 'TBODY', 'TR','TD'];
+				ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
+				ignore_tables = !$('#tables').is(':checked');
 			while( ele.tagName !== "BODY" ){
-				if ( ignored_tags.indexOf( ele.tagName ) > -1 ) {
+				if ( ignore_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
 					ele = ele.parentElement;
 					continue;
 				}
