@@ -13,13 +13,16 @@
 #collect_interface *{
 	color: #222;
 }
-.attach_top{
+#collect_interface *, #options_interface *{
+	text-align: left;
+}
+#collect_interface.attach_top{
 	top: 0;
 	border-width: 0 2px 2px;
 	border-style: solid;
 	border-color: #444;
 }
-.attach_bottom{
+#collect_interface.attach_bottom{
 	bottom: 0;
 	border-width: 2px 2px 0;
 	border-style: solid;
@@ -37,19 +40,24 @@
 	display: block;
 	margin: 2px 0;
 }
+#collect_interface button {
+	font-size: 12px;
+	padding: 2px;
+	margin-right: 3px;
+}
 #selector_parts{
 	line-height: 1.75em;
 }
 #selector_string{
 	width: 400px;
 }
-.toggleable{
+#collect_interface .toggleable{
 	cursor: pointer;
 }
 #collect_interface .toggleable:hover{
 	color: #FF0000;
 }
-.deltog{
+#collect_interface .deltog{
 	background:#efefef;
 	padding: 2px;
 	margin-right: 3px;
@@ -57,11 +65,36 @@
 	border-style: solid;
 	border-color: #777;
 }
-.deltog:hover{
+#collect_interface .deltog:hover{
 	background: #666;
 	color: #efefef;
 	cursor: pointer;
 }
+
+#collect_interface .selector_group{
+	border-width: 1px 0 1px 1px;
+	border-style: solid;
+	border-color: #777;
+	background: #ddd;
+	padding: 2px;
+}
+#collect_interface .off{
+	text-decoration: line-through;
+	opacity: 0.4;
+}
+/* options modal */
+#options_interface{
+	display: none;
+	position: fixed;
+	width: 50%;
+	background: #fff;
+	border: 2px solid #777;
+	top: 25%;
+	left: 25%;
+	padding: 10px;
+	z-index: 1000;
+}
+/* non-interface css */
 .highlight{
 	border: 1px solid blue !important;
 }
@@ -69,15 +102,4 @@
 .query_check { 
 	background: yellow !important; 
 	border: 1px solid yellow; 
-}
-.selector_group{
-	border-width: 1px 0 1px 1px;
-	border-style: solid;
-	border-color: #777;
-	background: #ddd;
-	padding: 2px;
-}
-.off{
-	text-decoration: line-through;
-	opacity: 0.4;
 }

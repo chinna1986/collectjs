@@ -3,23 +3,6 @@ load jquery, then make collect object and setup. format could use some work, but
 the time being
 */
 (function(){
-	var v = "1.9.1";
-	if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
-		var done = false,
-			script = document.createElement("script");
-		script.src = "https://ajax.googleapis.com/ajax/libs/jquery/" + v + "/jquery.min.js";
-		script.onload = script.onreadystatechange = function(){
-			if (!done && (!this.readyState || this.readyState == "loaded" || this.readyState == "complete")) {
-				done = true;
-				collect = make_collect(jQuery);
-				collect.setup();
-			}
-		};
-		document.getElementsByTagName("head")[0].appendChild(script);
-	} else {
-		collect = make_collect(jQuery);
-		collect.setup();
-	}
 
 	var make_collect = function($){
 		/***************
@@ -28,7 +11,7 @@ the time being
 		var Collect = {
 			highlight_css: "border:1px solid blue !important;",
 			check_css: "background: yellow !important; border: 1px solid yellow;",
-			elements: "*:not(body)"
+			elements: "body *:not(.no_select)"
 		}
 
 		Collect.setup = function(args){
@@ -37,9 +20,11 @@ the time being
 				this.check_css = args.check_css || this.check_css;
 				this.elements = args.elements || this.elements;
 			}
-			setup_interface();
-			Collect.insert_css();
-			Collect.events.on();
+			// ???
+			this.interface();
+			this.options();
+			this.insert_css();
+			this.events.on();
 		}
 
 		Collect.events = (function(){
@@ -51,7 +36,6 @@ the time being
 							mouseleave: deselect,
 							click: get_query_selector
 						});
-
 						$('#selector_parts').on('click', '.toggleable', function(event){
 							event.stopPropagation();
 							$(this).toggleClass('off');
@@ -71,14 +55,8 @@ the time being
 
 			function select(event){
 				event.stopPropagation();
-				/*
-				ignore if a part of the collect_interface div
-				*/
 				if ( highlighted ) {
 					highlighted.removeClass('highlight');
-				}
-				if ( $(this).hasClass('no_select') ) {
-					return;
 				}
 				// cache the currently highlighted object to prevent a future lookup
 				highlighted = $(this).addClass('highlight');
@@ -91,15 +69,9 @@ the time being
 			}
 
 			function get_query_selector(event){
-				/*
-				ignore if a part of the collect_interface div
-				*/
 				event.stopPropagation();
-				//	let the event happen for input elements
-				if (this.tagName !== 'INPUT'){
-					event.preventDefault();
-				}
-				if ( this === null || $(this).hasClass('no_select') ) {
+				event.preventDefault();
+				if ( this === null ) {
 					return;
 				}
 				var long_selector = '';
@@ -136,6 +108,102 @@ the time being
 			  }
 			});
 		}
+
+		Collect.interface = function() {
+			var interface_html = '{{collect.html}}',
+				events_on = true;
+
+			$(interface_html).appendTo('body');
+			$('#collect_interface, #collect_interface *').addClass('no_select');
+
+			$('#close_selector').click(function(event){
+				event.stopPropagation();
+				Collect.events.off();
+				$('.query_check').removeClass('query_check');
+				$('.highlight').removeClass('highlight');
+				$('#collect_interface').remove();
+			});
+			$('#off_button').click(function(event){
+				event.stopPropagation();
+				var _this = $(this);
+				if ( events_on ) {
+					Collect.events.off();
+					_this.text('On');
+				} else {
+					Collect.events.on();
+					_this.text('Off');
+				}
+				events_on = !events_on;
+			});
+
+			$('#move_position').click(function(event){
+				event.stopPropagation();
+				var interface = $('#collect_interface');
+				if ( interface.hasClass('attach_top') ) {
+					interface.removeClass('attach_top').addClass('attach_bottom');
+				} else {
+					interface.removeClass('attach_bottom').addClass('attach_top');
+				}
+			})
+
+			$('#selector_parts').on('click', '.deltog', function(){
+				var parent = this.parentElement,
+					prev = this.previousSibling;
+				parent.removeChild(prev);
+				parent.removeChild(this);
+			});
+		}
+
+
+		/*
+		options modal and selection options
+		*/
+		Collect.options = function(){
+			var options_button = $('<a href="#" id="open_options">Options</a>'),
+				options_element = $('<div id="options_interface">\
+					<h2 >Options</h2>\
+					<p>\
+						<label for="tables">\
+							Include Table Elements\
+						</label>\
+							<input type="checkbox" name="tables" id="tables" />\
+					</p>\
+					<a href="#" id="close_options">Close</a>\
+				</div>');
+			options_element.appendTo('body');
+			$('#options_interface, #options_interface *').addClass('no_select');
+
+			$("#close_options").click(function(event){
+				event.preventDefault();
+				event.stopPropagation();
+				options_element.hide();
+			});
+
+
+			options_button
+				.appendTo('#collect_interface')
+				.addClass('no_select')
+				.click(function(event){
+					event.preventDefault();
+					event.stopPropagation();
+					options_element.show();
+				});
+		}
+
+		/*
+		takes an element and applies the rules based on the options, returning true if it passes
+		all requirements
+		*/
+		Collect.rules = function(ele){
+			// Include Table Elements rule
+			var ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
+				no_tables = !$('#tables').is(':checked');
+			if ( no_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
+				return false;
+			}
+
+			return true;
+		}
 		/***************
 		END COLLECT OBJECT
 		***************/
@@ -143,6 +211,10 @@ the time being
 		/********************
 		PRIVATE FUNCTIONS
 		********************/
+		/*
+		iterates over selector group elements and builds a string based on toggleable elements
+		that are not switched off
+		*/
 		function get_test_selector() {
 			var groups = $('#selector_parts').children('.selector_group'),
 				selector = '',
@@ -161,6 +233,10 @@ the time being
 			return selector;
 		}
 
+		/*
+		applies style to elements that are selected by the css selector and updates interface with
+		information about the selector and its elements
+		*/
 		function test_selector() {
 			var selector = get_test_selector(),
 				selected;
@@ -207,13 +283,11 @@ the time being
 				original_ele = ele,
 				test_selector,
 				count = 0,
-				toggle_on = true,
-				ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
-				ignore_tables = !$('#tables').is(':checked');
+				toggle_on = true;
 			while( ele.tagName !== "BODY" ){
-				if ( ignore_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
+				if ( !Collect.rules(ele) ){
 					ele = ele.parentElement;
-					continue;
+					continue
 				}
 				ele_selector = new Selector( ele );
 				if ( count++ > 0 ) {
@@ -225,49 +299,6 @@ the time being
 			return selector;
 		}
 
-		function setup_interface() {
-			var interface_html = '{{collect.html}}';
-
-			$(interface_html).appendTo('body');
-			var events_on = true;
-
-			$('#close_selector').click(function(event){
-				event.stopPropagation();
-				Collect.events.off();
-				$('.query_check').removeClass('query_check');
-				$('.highlight').removeClass('highlight');
-				$('#collect_interface').remove();
-			});
-			$('#off_button').click(function(event){
-				event.stopPropagation();
-				var _this = $(this);
-				if ( events_on ) {
-					Collect.events.off();
-					_this.text('On');
-				} else {
-					Collect.events.on();
-					_this.text('Off');
-				}
-				events_on = !events_on;
-			});
-
-			$('#move_position').click(function(event){
-				event.stopPropagation();
-				var interface = $('#collect_interface');
-				if ( interface.hasClass('attach_top') ) {
-					interface.removeClass('attach_top').addClass('attach_bottom');
-				} else {
-					interface.removeClass('attach_bottom').addClass('attach_top');
-				}
-			})
-
-			$('#selector_parts').on('click', '.deltog', function(){
-				var parent = this.parentElement,
-					prev = this.previousSibling;
-				parent.removeChild(prev);
-				parent.removeChild(this);
-			});
-		}
 		/********************
 		END PRIVATE FUNCTIONS
 		********************/
@@ -314,4 +345,23 @@ the time being
 		return Collect;	
 
 	}
+
+	var v = "1.9.1";
+	if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
+		var done = false,
+			script = document.createElement("script");
+		script.src = "https://ajax.googleapis.com/ajax/libs/jquery/" + v + "/jquery.min.js";
+		script.onload = script.onreadystatechange = function(){
+			if (!done && (!this.readyState || this.readyState == "loaded" || this.readyState == "complete")) {
+				done = true;
+				collect = make_collect(jQuery);
+				collect.setup();
+			}
+		};
+		document.getElementsByTagName("head")[0].appendChild(script);
+	} else {
+		collect = make_collect(jQuery);
+		collect.setup();
+	}
+	
 })();
