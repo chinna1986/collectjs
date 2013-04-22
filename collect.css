@@ -40,11 +40,29 @@
 	display: block;
 	margin: 2px 0;
 }
+#control_buttons{
+	position: absolute;
+	top:0;
+	right:0;
+}
+
 #collect_interface button {
 	font-size: 12px;
-	padding: 2px;
-	margin-right: 3px;
+	padding: 2px 5px;
+	margin: 0;
+	background: #efefef;
+	border: 1px solid #444;
+	border-right: 0;
+	text-align: center;
+	box-shadow: none;
+	min-width: 0;
+	border-radius: 0;
 }
+
+#collect_interface.attach_bottom button {
+	border-top: 0;
+}
+
 #selector_parts{
 	line-height: 1.75em;
 }
@@ -82,13 +100,18 @@
 	text-decoration: line-through;
 	opacity: 0.4;
 }
+#open_options{
+	font-weight: bold;
+	font-size: 1.25em;
+}
+
 /* options modal */
 #options_interface{
 	display: none;
 	position: fixed;
 	width: 50%;
 	background: #fff;
-	border: 2px solid #777;
+	border: 2px solid #444;
 	top: 25%;
 	left: 25%;
 	padding: 10px;
