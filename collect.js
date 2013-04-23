@@ -23,7 +23,7 @@ the time being
 			// ???
 			this.interface();
 			this.options();
-			this.insert_css();
+			this.css();
 			this.events.on();
 		}
 
@@ -91,10 +91,11 @@ the time being
 			return event_obj;
 		})();
 
-		Collect.insert_css = function() {
+		Collect.css = function() {
 			var s = document.createElement('style');
+			s.setAttribute('id','collect-style');
 			s.innerText = ".highlight{" + this.highlight_css + "}" +
-				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 200px;padding: 5px 20px;background: #fff;z-index: 1000;overflow-y: scroll;font-family: sans-serif;font-size: 12px;}#collect_interface *{color: #222;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface button {font-size: 12px;padding: 2px 5px;margin: 0;background: #efefef;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_bottom button {border-top: 0;}#selector_parts{line-height: 1.75em;}#selector_string{width: 400px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .deltog{background:#efefef;padding: 2px;margin-right: 3px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;}#collect_interface .deltog:hover{background: #666;color: #efefef;cursor: pointer;}#collect_interface .selector_group{border-width: 1px 0 1px 1px;border-style: solid;border-color: #777;background: #ddd;padding: 2px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#open_options{font-weight: bold;font-size: 1.25em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 1000;}/* non-interface css */.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }";
+				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 200px;padding: 5px 20px;background: #fff;z-index: 1000;overflow-y: scroll;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{color: #222;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface button{font-size: 12px;padding: 2px 5px;margin: 0;background: #efefef;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface button:hover{cursor:pointer;}#collect_interface.attach_bottom button {border-top: 0;}#selector_parts{line-height: 1.75em;}#selector_string{width: 400px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .deltog{background:#efefef;padding: 2px;margin-right: 3px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;}#collect_interface .deltog:hover{background: #666;color: #efefef;cursor: pointer;}#collect_interface .capture{border-width: 1px 0 1px 1px;border-style: solid;border-color: #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{border: 1px solid #777;background: #ddd;padding: 2px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface #selector_text{line-height: 1.5em;}#open_options{font-weight: bold;font-size: 1.25em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 1000;}/* non-interface css */.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
@@ -110,7 +111,7 @@ the time being
 		}
 
 		Collect.interface = function() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_curr\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p></section><div id=\"control_buttons\"><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button><button id=\"move_position\">Move</button></div></div>',
+			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><p>Selector: <input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p>Capture: <input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></section><div id=\"control_buttons\"><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button><button id=\"move_position\">Move to Top</button></div></div>',
 				events_on = true;
 
 			$(interface_html).appendTo('body');
@@ -121,8 +122,9 @@ the time being
 				Collect.events.off();
 				$('.query_check').removeClass('query_check');
 				$('.highlight').removeClass('highlight');
-				$('#collect_interface').remove();
+				$('#collect_interface, #options_interface, #collect-style').remove();
 			});
+
 			$('#off_button').click(function(event){
 				event.stopPropagation();
 				var _this = $(this);
@@ -141,17 +143,23 @@ the time being
 				var interface = $('#collect_interface');
 				if ( interface.hasClass('attach_top') ) {
 					interface.removeClass('attach_top').addClass('attach_bottom');
+					$(this).text('Move to Top');
 				} else {
 					interface.removeClass('attach_bottom').addClass('attach_top');
+					$(this).text('Move to Bottom');
 				}
 			})
 
 			$('#selector_parts').on('click', '.deltog', function(){
-				var parent = this.parentElement,
-					prev = this.previousSibling;
-				parent.removeChild(prev);
-				parent.removeChild(this);
-			});
+					var parent = this.parentElement,
+						prev = this.previousSibling;
+					parent.removeChild(prev);
+					parent.removeChild(this);
+				});
+			$('#selector_text').on('click', '.capture', function(){
+					var _this = $(this);
+					$('#selector_capture').val( _this.data('capture') );
+				});
 		}
 
 
@@ -229,7 +237,7 @@ the time being
 				});
 				selector += (selector != '' ? ' ':'') + group_selector;
 			}
-
+			selector = selector.replace(/\s+/g, ' ');
 			return selector;
 		}
 
@@ -238,21 +246,62 @@ the time being
 		information about the selector and its elements
 		*/
 		function test_selector() {
-			var selector = get_test_selector(),
-				selected;
+			var selector = get_test_selector();
 			$('.query_check').removeClass('query_check');
+			update_interface(selector);
 			/* break if no selector returned */
+			
+		}
+
+		function update_interface(selector){
+			var selected;
+			$('#selector_capture').val('');
 			if (selector === ''){
 				$('#selector_count').html("Count: 0");
-				$('#selector_curr').html("No selector");
-				$('#selector_text').html("no query selector given");
+				$('#selector_string').val("");
+				$('#selector_text').html("");
 				return;
 			}
 			selected = $( selector + ':not(.no_select)');
 			selected.addClass('query_check');
 			$('#selector_count').html("Count: " + selected.length);
-			$('#selector_curr').html(selector);
-			$('#selector_text').text(get_element_html(selected[0]) || "no text");
+			$('#selector_string').val(selector);
+			$('#selector_text').html(make_selector_text(selected[0]) || "no text");
+		}
+
+		function make_selector_text(element) {
+			function wrap_property(ele, val){
+				return '<span class="capture" title="click to capture ' + val +
+					' property" data-capture="' + val + '">' + ele + '</span>';
+			}
+
+			var html_tag_regex = /<[^\/].+?>/g,
+				property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
+				text_regex = />(.+)</g,
+				text = get_element_html(element),
+				tags = text.match(html_tag_regex),
+				text_val = text_regex.exec(text),
+				properties = [],
+				tag_properties;
+			for( var e=0, len=tags.length; e<len; e++ ) {
+				tag_properties = tags[e].match(property_regex);
+				if ( tag_properties ) {
+					for( var p=0, prop_len=tag_properties.length; p<prop_len; p++ ) {
+						properties.push(tag_properties[p]);
+					}
+				}
+			}
+			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			for( var i=0, len=properties.length; i<len; i++ ) {
+				var curr = properties[i],
+					attr = curr.slice(0, curr.indexOf('='))
+				text = text.replace(curr, wrap_property(curr, 'attr-' + attr));
+			}
+			if ( text_val ) {
+				var curr = text_val[1];
+				text = text.replace(curr, wrap_property(curr, 'text'));
+			}
+			return text;
 		}
 
 		/*
@@ -278,18 +327,18 @@ the time being
 		in the query selector
 		*/
 		function get_element_selector(ele) {
-			var selector = '',
-				ele_selector = '',
-				original_ele = ele,
-				test_selector,
+			var ele_selector,
+				selector = '',
 				count = 0,
 				toggle_on = true;
+			// stop generating selector when you get to the body element
 			while( ele.tagName !== "BODY" ){
 				if ( !Collect.rules(ele) ){
 					ele = ele.parentElement;
 					continue
 				}
 				ele_selector = new Selector( ele );
+				// default 'off' class for all parent elements
 				if ( count++ > 0 ) {
 					toggle_on = false;
 				}

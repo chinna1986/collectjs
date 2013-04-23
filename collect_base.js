@@ -23,7 +23,7 @@ the time being
 			// ???
 			this.interface();
 			this.options();
-			this.insert_css();
+			this.css();
 			this.events.on();
 		}
 
@@ -91,8 +91,9 @@ the time being
 			return event_obj;
 		})();
 
-		Collect.insert_css = function() {
+		Collect.css = function() {
 			var s = document.createElement('style');
+			s.setAttribute('id','collect-style');
 			s.innerText = ".highlight{" + this.highlight_css + "}" +
 				".query_check {" + this.check_css + "}" + "{{collect.css}}";
 			s.setAttribute('type','text/css');
@@ -121,8 +122,9 @@ the time being
 				Collect.events.off();
 				$('.query_check').removeClass('query_check');
 				$('.highlight').removeClass('highlight');
-				$('#collect_interface').remove();
+				$('#collect_interface, #options_interface, #collect-style').remove();
 			});
+
 			$('#off_button').click(function(event){
 				event.stopPropagation();
 				var _this = $(this);
@@ -141,17 +143,23 @@ the time being
 				var interface = $('#collect_interface');
 				if ( interface.hasClass('attach_top') ) {
 					interface.removeClass('attach_top').addClass('attach_bottom');
+					$(this).text('Move to Top');
 				} else {
 					interface.removeClass('attach_bottom').addClass('attach_top');
+					$(this).text('Move to Bottom');
 				}
 			})
 
 			$('#selector_parts').on('click', '.deltog', function(){
-				var parent = this.parentElement,
-					prev = this.previousSibling;
-				parent.removeChild(prev);
-				parent.removeChild(this);
-			});
+					var parent = this.parentElement,
+						prev = this.previousSibling;
+					parent.removeChild(prev);
+					parent.removeChild(this);
+				});
+			$('#selector_text').on('click', '.capture', function(){
+					var _this = $(this);
+					$('#selector_capture').val( _this.data('capture') );
+				});
 		}
 
 
@@ -229,7 +237,7 @@ the time being
 				});
 				selector += (selector != '' ? ' ':'') + group_selector;
 			}
-
+			selector = selector.replace(/\s+/g, ' ');
 			return selector;
 		}
 
@@ -238,21 +246,62 @@ the time being
 		information about the selector and its elements
 		*/
 		function test_selector() {
-			var selector = get_test_selector(),
-				selected;
+			var selector = get_test_selector();
 			$('.query_check').removeClass('query_check');
+			update_interface(selector);
 			/* break if no selector returned */
+			
+		}
+
+		function update_interface(selector){
+			var selected;
+			$('#selector_capture').val('');
 			if (selector === ''){
 				$('#selector_count').html("Count: 0");
-				$('#selector_curr').html("No selector");
-				$('#selector_text').html("no query selector given");
+				$('#selector_string').val("");
+				$('#selector_text').html("");
 				return;
 			}
 			selected = $( selector + ':not(.no_select)');
 			selected.addClass('query_check');
 			$('#selector_count').html("Count: " + selected.length);
-			$('#selector_curr').html(selector);
-			$('#selector_text').text(get_element_html(selected[0]) || "no text");
+			$('#selector_string').val(selector);
+			$('#selector_text').html(make_selector_text(selected[0]) || "no text");
+		}
+
+		function make_selector_text(element) {
+			function wrap_property(ele, val){
+				return '<span class="capture" title="click to capture ' + val +
+					' property" data-capture="' + val + '">' + ele + '</span>';
+			}
+
+			var html_tag_regex = /<[^\/].+?>/g,
+				property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
+				text_regex = />(.+)</g,
+				text = get_element_html(element),
+				tags = text.match(html_tag_regex),
+				text_val = text_regex.exec(text),
+				properties = [],
+				tag_properties;
+			for( var e=0, len=tags.length; e<len; e++ ) {
+				tag_properties = tags[e].match(property_regex);
+				if ( tag_properties ) {
+					for( var p=0, prop_len=tag_properties.length; p<prop_len; p++ ) {
+						properties.push(tag_properties[p]);
+					}
+				}
+			}
+			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			for( var i=0, len=properties.length; i<len; i++ ) {
+				var curr = properties[i],
+					attr = curr.slice(0, curr.indexOf('='))
+				text = text.replace(curr, wrap_property(curr, 'attr-' + attr));
+			}
+			if ( text_val ) {
+				var curr = text_val[1];
+				text = text.replace(curr, wrap_property(curr, 'text'));
+			}
+			return text;
 		}
 
 		/*
@@ -278,18 +327,18 @@ the time being
 		in the query selector
 		*/
 		function get_element_selector(ele) {
-			var selector = '',
-				ele_selector = '',
-				original_ele = ele,
-				test_selector,
+			var ele_selector,
+				selector = '',
 				count = 0,
 				toggle_on = true;
+			// stop generating selector when you get to the body element
 			while( ele.tagName !== "BODY" ){
 				if ( !Collect.rules(ele) ){
 					ele = ele.parentElement;
 					continue
 				}
 				ele_selector = new Selector( ele );
+				// default 'off' class for all parent elements
 				if ( count++ > 0 ) {
 					toggle_on = false;
 				}
