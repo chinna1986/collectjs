@@ -1,18 +1,14 @@
-/*
-load jquery, then make collect object and setup. format could use some work, but is alright for
-the time being
-*/
 (function(){
-
+	"use strict";
 	var make_collect = function($){
 		/***************
 		COLLECT OBJECT
 		***************/
 		var Collect = {
 			highlight_css: "border:1px solid blue !important;",
-			check_css: "background: yellow !important; border: 1px solid yellow;",
+			check_css: "background: yellow !important; border: 1px solid yellow !important;",
 			elements: "body *:not(.no_select)"
-		}
+		};
 
 		Collect.setup = function(args){
 			if ( arguments.length !== 0 ) {
@@ -20,36 +16,35 @@ the time being
 				this.check_css = args.check_css || this.check_css;
 				this.elements = args.elements || this.elements;
 			}
-			// ???
-			this.interface();
+			this.make_interface();
 			this.options();
 			this.css();
 			this.events.on();
-		}
+		};
 
 		Collect.events = (function(){
 			var highlighted,
 				event_obj = {
-					on: function(event){
+					on: function(){
 						$(Collect.elements).on({
 							mouseenter: select,
 							mouseleave: deselect,
 							click: get_query_selector
 						});
-						$('#selector_parts').on('click', '.toggleable', function(event){
-							event.stopPropagation();
+
+						$('#selector_parts').on('click', '.toggleable', function(){
 							$(this).toggleClass('off');
-							test_selector();
+							update_interface();
 						});
 					},
-					off: function(event){
+					off: function(){
 						$(Collect.elements).off({
 							mouseenter: select,
 							mouseleave: deselect,
 							click: get_query_selector
 						});
 
-						$('#selector_parts').off('click', '.toggleable')
+						$('#selector_parts').off('click', '.toggleable');
 										}
 				};
 
@@ -76,8 +71,8 @@ the time being
 				}
 				var long_selector = '';
 				/*
-				when clicking on an option, 'this' is the select element, so use the first child
-				option so that that is included in the long selector
+				when clicking on an option element, 'this' is the select element, so use the first
+				child option so that that is included in the long selector
 				*/
 				if ( this.tagName === "SELECT" ) {
 					long_selector = get_element_selector(this.children[0]);	
@@ -85,7 +80,7 @@ the time being
 					long_selector = get_element_selector(this);
 				}
 				$('#selector_parts').html(long_selector);
-				test_selector();
+				update_interface();
 			}
 
 			return event_obj;
@@ -95,23 +90,24 @@ the time being
 			var s = document.createElement('style');
 			s.setAttribute('id','collect-style');
 			s.innerText = ".highlight{" + this.highlight_css + "}" +
-				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 200px;padding: 5px 20px;background: #fff;z-index: 1000;overflow-y: scroll;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{color: #222;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface button{font-size: 12px;padding: 2px 5px;margin: 0;background: #efefef;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface button:hover{cursor:pointer;}#collect_interface.attach_bottom button {border-top: 0;}#selector_parts{line-height: 1.75em;}#selector_string{width: 400px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .deltog{background:#efefef;padding: 2px;margin-right: 3px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;}#collect_interface .deltog:hover{background: #666;color: #efefef;cursor: pointer;}#collect_interface .capture{border-width: 1px 0 1px 1px;border-style: solid;border-color: #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{border: 1px solid #777;background: #ddd;padding: 2px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface #selector_text{line-height: 1.5em;}#open_options{font-weight: bold;font-size: 1.25em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 1000;}/* non-interface css */.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }";
+				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 200px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{color: #222;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface button{font-size: 12px;float: none;clear: none;padding: 2px 5px;margin: 0;background: #efefef;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface button:hover{cursor:pointer;}#collect_interface.attach_bottom button {border-top: 0;}#selector_parts{line-height: 1.75em;}#selector_string{width: 400px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .deltog{background:#efefef;padding: 2px;margin-right: 3px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;}#collect_interface .deltog:hover{background: #666;color: #efefef;cursor: pointer;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{border: 1px solid #777;background: #ddd;padding: 2px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface #selector_text{line-height: 1.5em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}/* non-interface css */.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
-		}
-
+		};
+		/*
+		not yet implemented
 		Collect.load = function(json_url){
 			$.ajax({
-			  dataType: "json",
-			  url: json_url,
-			  success: function( data ) {
-
-			  }
+				dataType: "json",
+				url: json_url,
+				success: function( data ) {
+			}
 			});
-		}
+		};
+		*/
 
-		Collect.interface = function() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><p>Selector: <input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p>Capture: <input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></section><div id=\"control_buttons\"><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button><button id=\"move_position\">Move to Top</button></div></div>',
+		Collect.make_interface = function() {
+			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><p>Selector: <input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p>Capture: <input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></section><div id=\"control_buttons\"><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button><button id=\"move_position\">Move to Top</button><button id=\"open_options\">Options</button></div></div>',
 				events_on = true;
 
 			$(interface_html).appendTo('body');
@@ -131,6 +127,8 @@ the time being
 				if ( events_on ) {
 					Collect.events.off();
 					_this.text('On');
+					$('.query_check').removeClass('query_check');
+					$('.highlight').removeClass('highlight');
 				} else {
 					Collect.events.on();
 					_this.text('Off');
@@ -140,15 +138,15 @@ the time being
 
 			$('#move_position').click(function(event){
 				event.stopPropagation();
-				var interface = $('#collect_interface');
-				if ( interface.hasClass('attach_top') ) {
-					interface.removeClass('attach_top').addClass('attach_bottom');
+				var collect_interface = $('#collect_interface');
+				if ( collect_interface.hasClass('attach_top') ) {
+					collect_interface.removeClass('attach_top').addClass('attach_bottom');
 					$(this).text('Move to Top');
 				} else {
-					interface.removeClass('attach_bottom').addClass('attach_top');
+					collect_interface.removeClass('attach_bottom').addClass('attach_top');
 					$(this).text('Move to Bottom');
 				}
-			})
+			});
 
 			$('#selector_parts').on('click', '.deltog', function(){
 					var parent = this.parentElement,
@@ -160,43 +158,25 @@ the time being
 					var _this = $(this);
 					$('#selector_capture').val( _this.data('capture') );
 				});
-		}
+		};
 
 
 		/*
 		options modal and selection options
 		*/
 		Collect.options = function(){
-			var options_button = $('<a href="#" id="open_options">Options</a>'),
-				options_element = $('<div id="options_interface">\
-					<h2 >Options</h2>\
-					<p>\
-						<label for="tables">\
-							Include Table Elements\
-						</label>\
-							<input type="checkbox" name="tables" id="tables" />\
-					</p>\
-					<a href="#" id="close_options">Close</a>\
-				</div>');
+			var options_html = "<section id=\"collect_options\" class=\"options \"><h2 >Options</h2><p><label for=\"tables\">Include Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
+				options_element = $(options_html);
 			options_element.appendTo('body');
 			$('#options_interface, #options_interface *').addClass('no_select');
 
-			$("#close_options").click(function(event){
+			$("#open_options, #close_options").click(function(event){
 				event.preventDefault();
 				event.stopPropagation();
-				options_element.hide();
+				options_element.toggle();
 			});
 
-
-			options_button
-				.appendTo('#collect_interface')
-				.addClass('no_select')
-				.click(function(event){
-					event.preventDefault();
-					event.stopPropagation();
-					options_element.show();
-				});
-		}
+		};
 
 		/*
 		takes an element and applies the rules based on the options, returning true if it passes
@@ -211,7 +191,7 @@ the time being
 			}
 
 			return true;
-		}
+		};
 		/***************
 		END COLLECT OBJECT
 		***************/
@@ -226,34 +206,24 @@ the time being
 		function get_test_selector() {
 			var groups = $('#selector_parts').children('.selector_group'),
 				selector = '',
-				group_selector = '';
+				group_selector = '',
+				tog_children;
 			for (var g=0, len=groups.length; g < len; g++) {
 				group_selector = '';
-				groups.eq(g).children('.toggleable').each(function(){
-					var curr = $(this);
-					if ( !curr.hasClass('off') ) {
-						group_selector += curr.text();
-					}
-				});
-				selector += (selector != '' ? ' ':'') + group_selector;
+				tog_children = groups.eq(g).children('.toggleable');
+				for ( var i=0, children_len=tog_children.length; i<children_len; i++ ) {
+					var curr = tog_children.eq(i);
+					group_selector += curr.hasClass('off') ? '' : curr.text();
+				}
+				selector += (selector !== '' ? ' ':'') + group_selector;
 			}
 			selector = selector.replace(/\s+/g, ' ');
 			return selector;
 		}
 
-		/*
-		applies style to elements that are selected by the css selector and updates interface with
-		information about the selector and its elements
-		*/
-		function test_selector() {
+		function update_interface(){
 			var selector = get_test_selector();
 			$('.query_check').removeClass('query_check');
-			update_interface(selector);
-			/* break if no selector returned */
-			
-		}
-
-		function update_interface(selector){
 			var selected;
 			$('#selector_capture').val('');
 			if (selector === ''){
@@ -261,12 +231,13 @@ the time being
 				$('#selector_string').val("");
 				$('#selector_text').html("");
 				return;
+			} else {
+				selected = $( selector + ':not(.no_select)');
+				selected.addClass('query_check');
+				$('#selector_count').html("Count: " + selected.length);
+				$('#selector_string').val(selector);
+				$('#selector_text').html(make_selector_text(selected[0]) || "no text");
 			}
-			selected = $( selector + ':not(.no_select)');
-			selected.addClass('query_check');
-			$('#selector_count').html("Count: " + selected.length);
-			$('#selector_string').val(selector);
-			$('#selector_text').html(make_selector_text(selected[0]) || "no text");
 		}
 
 		function make_selector_text(element) {
@@ -275,30 +246,38 @@ the time being
 					' property" data-capture="' + val + '">' + ele + '</span>';
 			}
 
-			var html_tag_regex = /<[^\/].+?>/g,
+			var tag_properties, curr, attr, replace_regexp,
+				html_tag_regex = /<[^\/].+?>/g,
 				property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
 				text_regex = />(.+)</g,
 				text = get_element_html(element),
 				tags = text.match(html_tag_regex),
 				text_val = text_regex.exec(text),
 				properties = [],
-				tag_properties;
-			for( var e=0, len=tags.length; e<len; e++ ) {
+				property_check = {};
+
+			for( var e=0, tag_len=tags.length; e<tag_len; e++ ) {
 				tag_properties = tags[e].match(property_regex);
 				if ( tag_properties ) {
-					for( var p=0, prop_len=tag_properties.length; p<prop_len; p++ ) {
-						properties.push(tag_properties[p]);
+					for( var p=0, tag_prop_len=tag_properties.length; p<tag_prop_len; p++ ) {
+						curr = tag_properties[p];
+						if ( !property_check[curr] ) { 
+							properties.push(tag_properties[p]);
+							property_check[curr] = true;
+						}
+						
 					}
 				}
 			}
 			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-			for( var i=0, len=properties.length; i<len; i++ ) {
-				var curr = properties[i],
-					attr = curr.slice(0, curr.indexOf('='))
-				text = text.replace(curr, wrap_property(curr, 'attr-' + attr));
+			for( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
+				curr = properties[i];
+				attr = curr.slice(0, curr.indexOf('='));
+				replace_regexp = new RegExp(curr, 'g');
+				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
 			}
 			if ( text_val ) {
-				var curr = text_val[1];
+				curr = text_val[1];
 				text = text.replace(curr, wrap_property(curr, 'text'));
 			}
 			return text;
@@ -319,12 +298,11 @@ the time being
 		}
 
 		/*
-		returns the html for a set of "group selectors" used to describe the ele argument's css selector
-		from one step above the body to the element
-		each group selector conssists of a toggleable span for the element's tag, as well as id and any
-		classes if they exist (and a delete button to get rid of that group selector)
-		a toggleable element can be turned on/off to test what is selected when it is/isn't included
-		in the query selector
+		returns the html for a set of "group selectors" used to describe the ele argument's css 
+		selector from one step above the body to the element each group selector conssists of a
+		toggleable span for the element's tag, as well as id and any classes if they exist (and a
+		delete button to get rid of that group selector) a toggleable element can be turned on/off
+		to test what is selected when it is/isn't included in the query selector
 		*/
 		function get_element_selector(ele) {
 			var ele_selector,
@@ -335,7 +313,7 @@ the time being
 			while( ele.tagName !== "BODY" ){
 				if ( !Collect.rules(ele) ){
 					ele = ele.parentElement;
-					continue
+					continue;
 				}
 				ele_selector = new Selector( ele );
 				// default 'off' class for all parent elements
@@ -384,8 +362,9 @@ the time being
 					selector += wrap_toggleable('.' + curr);
 				}
 			}
-			return "<span class='selector_group no_select'>" + selector + "</span><span class='deltog no_select'>x</span>";
-		}
+			return "<span class='selector_group no_select'>" + selector +
+				"</span><span class='deltog no_select'>x</span>";
+		};
 
 		/********************
 		END SELECTOR OBJECT
@@ -393,7 +372,7 @@ the time being
 
 		return Collect;	
 
-	}
+	};
 
 	var v = "1.9.1";
 	if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
@@ -401,15 +380,15 @@ the time being
 			script = document.createElement("script");
 		script.src = "https://ajax.googleapis.com/ajax/libs/jquery/" + v + "/jquery.min.js";
 		script.onload = script.onreadystatechange = function(){
-			if (!done && (!this.readyState || this.readyState == "loaded" || this.readyState == "complete")) {
+			if (!done && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")) {
 				done = true;
-				collect = make_collect(jQuery);
+				var collect = make_collect(jQuery);
 				collect.setup();
 			}
 		};
 		document.getElementsByTagName("head")[0].appendChild(script);
 	} else {
-		collect = make_collect(jQuery);
+		var collect = make_collect(jQuery);
 		collect.setup();
 	}
 	
