@@ -56,7 +56,25 @@
 							.on('click', '.toggleable', function(){
 								$(this).toggleClass('off');
 								update_interface();
+							})
+							.on('mouseenter', '.selector_group', function(){
+								var _this = $(this),
+									parent = _this.parents('#selector_parts'),
+									index = 0,
+									elem = this,
+									selector;
+    							while ( (elem=elem.previousElementSibling) !== null ) {
+    								index++;
+								}
+								// + 1 to include the hovered selector
+								selector = get_test_selector(index + 1);
+								$('.highlight').removeClass('highlight');
+								$(selector).addClass('highlight');
+							})
+							.on('mouseleave', '.selector_group', function(){
+								$('.highlight').removeClass('highlight');
 							});
+							
 					},
 					off: function(){
 						$(Collect.elements).off({
@@ -68,23 +86,17 @@
 						$('#selector_parts').off('click', '.toggleable');
 										}
 				};
-			
-			// bind to mouse entering elements
+
 			function select(event){
 				event.stopPropagation();
-				if ( highlighted ) {
-					highlighted.removeClass('highlight');
-				}
-				// cache the currently highlighted object to prevent a future lookup
-				highlighted = $(this).addClass('highlight');
+				$(this).addClass('highlight');
 			}
-			// bind to mouse leaving elements
+
 			function deselect(event){
 				event.stopPropagation();
 				$(this).removeClass('highlight');
-				highlighted = undefined;
 			}
-			// bind to clicking elements
+
 			function get_query_selector(event){
 				event.stopPropagation();
 				event.preventDefault();
@@ -92,6 +104,7 @@
 					return;
 				}
 				var long_selector = '';
+				$('.highlight').removeClass('highlight');
 				/*
 				when clicking on an option element, 'this' is the select element, so use the first
 				child option so that that is included in the long selector
@@ -228,7 +241,7 @@
 		options modal and selection options
 		*/
 		Collect.options = function(){
-			var options_html = "<section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Include Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"full_text\">Show full element text/innerHTML</label><input type=\"checkbox\"  name=\"full_text\" id=\"full_text\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
+			var options_html = "<section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Hide Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"full_text\">Show full element text/innerHTML</label><input type=\"checkbox\"  name=\"full_text\" id=\"full_text\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
 				options_element = $(options_html);
 			options_element.appendTo('body');
 			$('#options_interface, #options_interface *').addClass('no_select');
@@ -248,7 +261,7 @@
 		Collect.rules = function(ele){
 			// Include Table Elements rule
 			var ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
-				no_tables = !$('#tables').is(':checked');
+				no_tables = $('#tables').is(':checked');
 			if ( no_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
 				return false;
 			}
@@ -266,17 +279,18 @@
 		iterates over selector group elements and builds a string based on toggleable elements
 		that are not switched off
 		*/
-		function get_test_selector() {
+		function get_test_selector(index) {
 			var groups = $('#selector_parts .selector_group'),
 				selector = '',
 				group_selector = '',
-				tog_children;
-			for (var g=0, len=groups.length; g < len; g++) {
+				tog_children,
+				len = index || groups.length;
+			for (var g=0; g < len; g++) {
 				group_selector = '';
 				tog_children = groups.eq(g).children('.toggleable');
 				for ( var i=0, children_len=tog_children.length; i<children_len; i++ ) {
 					var curr = tog_children.eq(i);
-					group_selector += curr.hasClass('off') ? '' : curr.text();
+					group_selector += (curr.hasClass('off') && !index) ? '' : curr.text();
 				}
 				selector += (selector !== '' ? ' ':'') + group_selector;
 			}

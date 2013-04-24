@@ -56,7 +56,25 @@
 							.on('click', '.toggleable', function(){
 								$(this).toggleClass('off');
 								update_interface();
+							})
+							.on('mouseenter', '.selector_group', function(){
+								var _this = $(this),
+									parent = _this.parents('#selector_parts'),
+									index = 0,
+									elem = this,
+									selector;
+    							while ( (elem=elem.previousElementSibling) !== null ) {
+    								index++;
+								}
+								// + 1 to include the hovered selector
+								selector = get_test_selector(index + 1);
+								$('.highlight').removeClass('highlight');
+								$(selector).addClass('highlight');
+							})
+							.on('mouseleave', '.selector_group', function(){
+								$('.highlight').removeClass('highlight');
 							});
+							
 					},
 					off: function(){
 						$(Collect.elements).off({
@@ -71,17 +89,12 @@
 
 			function select(event){
 				event.stopPropagation();
-				if ( highlighted ) {
-					highlighted.removeClass('highlight');
-				}
-				// cache the currently highlighted object to prevent a future lookup
-				highlighted = $(this).addClass('highlight');
+				$(this).addClass('highlight');
 			}
 
 			function deselect(event){
 				event.stopPropagation();
 				$(this).removeClass('highlight');
-				highlighted = undefined;
 			}
 
 			function get_query_selector(event){
@@ -91,6 +104,7 @@
 					return;
 				}
 				var long_selector = '';
+				$('.highlight').removeClass('highlight');
 				/*
 				when clicking on an option element, 'this' is the select element, so use the first
 				child option so that that is included in the long selector
@@ -247,7 +261,7 @@
 		Collect.rules = function(ele){
 			// Include Table Elements rule
 			var ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
-				no_tables = !$('#tables').is(':checked');
+				no_tables = $('#tables').is(':checked');
 			if ( no_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
 				return false;
 			}
@@ -265,17 +279,18 @@
 		iterates over selector group elements and builds a string based on toggleable elements
 		that are not switched off
 		*/
-		function get_test_selector() {
+		function get_test_selector(index) {
 			var groups = $('#selector_parts .selector_group'),
 				selector = '',
 				group_selector = '',
-				tog_children;
-			for (var g=0, len=groups.length; g < len; g++) {
+				tog_children,
+				len = index || groups.length;
+			for (var g=0; g < len; g++) {
 				group_selector = '';
 				tog_children = groups.eq(g).children('.toggleable');
 				for ( var i=0, children_len=tog_children.length; i<children_len; i++ ) {
 					var curr = tog_children.eq(i);
-					group_selector += curr.hasClass('off') ? '' : curr.text();
+					group_selector += (curr.hasClass('off') && !index) ? '' : curr.text();
 				}
 				selector += (selector !== '' ? ' ':'') + group_selector;
 			}
@@ -326,11 +341,11 @@
 				properties = [],
 				property_check = {};
 			// find tag attributes
-			for( var e=0, tag_len=tags.length; e<tag_len; e++ ) {
+			for ( var e=0, tag_len=tags.length; e<tag_len; e++ ) {
 				tag_properties = tags[e].match(property_regex);
 				if ( tag_properties ) {
 					// add unique attributes to properties array
-					for( var p=0, tag_prop_len=tag_properties.length; p<tag_prop_len; p++ ) {
+					for ( var p=0, tag_prop_len=tag_properties.length; p<tag_prop_len; p++ ) {
 						curr = tag_properties[p];
 						if ( !property_check[curr] ) { 
 							properties.push(tag_properties[p]);
@@ -342,17 +357,17 @@
 			}
 			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 			// replace properties with capture spans
-			for( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
+			for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
 				curr = properties[i];
 				attr = curr.slice(0, curr.indexOf('='));
 				replace_regexp = new RegExp(escape_regexp(curr), 'g');
 				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
 			}
 			// create capture spans with 'text' targets on all text
-			if( text_val ) {
-				for( var t=0, text_len=text_val.length; t<text_len; t++) {
+			if ( text_val ) {
+				for ( var t=0, text_len=text_val.length; t<text_len; t++) {
 					curr = text_val[t].replace(/</g,'&lt;').replace(/>/g,'&gt;');
-					if ( !text_check[curr] ){
+					if ( !text_check[curr] ) {
 						text_check[curr] = true;
 						var text_replace_regexp = new RegExp(escape_regexp(curr), 'g');
 						text = text.replace(text_replace_regexp,
@@ -366,7 +381,7 @@
 		returns the html code for the ele argument
 		*/
 		function get_element_html(ele, no_children){
-			if (!ele){
+			if (!ele) {
 				return '';
 			}
 			var holder = document.createElement('div'),
@@ -392,8 +407,8 @@
 				count = 0,
 				toggle_on = true;
 			// stop generating selector when you get to the body element
-			while( ele.tagName !== "BODY" ){
-				if ( !Collect.rules(ele) ){
+			while ( ele.tagName !== "BODY" ){
+				if ( !Collect.rules(ele) ) {
 					ele = ele.parentElement;
 					continue;
 				}
@@ -435,7 +450,7 @@
 				selector += wrap_toggleable(this.id);
 			}
 			if ( this.classes.length ) {
-				for( var pos=0, len=this.classes.length; pos < len; pos++ ) {
+				for ( var pos=0, len=this.classes.length; pos < len; pos++ ) {
 					var curr = this.classes[pos];
 					// don't add classes added by this script
 					if ( curr === "highlight" || curr === "query_check" ) {
