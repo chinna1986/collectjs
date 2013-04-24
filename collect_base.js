@@ -23,8 +23,7 @@
 		};
 
 		Collect.events = (function(){
-			var highlighted,
-				event_obj = {
+			var event_obj = {
 					on: function(){
 						$(Collect.elements).on({
 							mouseenter: select,
@@ -44,12 +43,10 @@
 									/* matches nth-child selectors:
 										odd, even, positive integers, an+b, -an+b
 									*/
-									child_match = /^(?:odd|even|-?\d+n(?:\s*\+\s*\d+)?|\d+)$/;
+									child_match = /^(?:odd|even|-?\d+n(?:\s*(?:\+|-)\s*\d+)?|\d+)$/;
 								if ( text.match(child_match) === null ) {
 									// if input is bad, reset to 1 and turn the selector off
-									_this
-										.text('1')
-										.parent().addClass('off');
+									_this.text('1').parent().addClass('off');
 								}
 								update_interface();
 							})
@@ -58,13 +55,11 @@
 								update_interface();
 							})
 							.on('mouseenter', '.selector_group', function(){
-								var _this = $(this),
-									parent = _this.parents('#selector_parts'),
-									index = 0,
+								var index = 0,
 									elem = this,
 									selector;
-    							while ( (elem=elem.previousElementSibling) !== null ) {
-    								index++;
+								while ( (elem=elem.previousElementSibling) !== null ) {
+									index++;
 								}
 								// + 1 to include the hovered selector
 								selector = get_test_selector(index + 1);
@@ -195,7 +190,7 @@
 			});
 
 			// create an object for the current query selector/capture data
-			$("#selector_form").on('submit', function(event){
+			$('#collect_save').on('click', function(event){
 				event.preventDefault();
 				var _this = $(this),
 					serialized_form = _this.serialize(),
@@ -211,8 +206,25 @@
 
 				$('input', _this).val('');
 			});
+			$('#collect_preview').on('click', function(event){
+				event.preventDefault();
+				var selector = $('#selector_string').val(),
+					eles = $(selector),
+					type = $('#selector_capture').val();
+				if ( type === '' ) {
+					console.log("No attribute to capture");
+				} else if ( type === 'text' ) {
+					eles.each(function(){
+						console.log($(this).text());
+					});
+				} else if ( type.indexOf('attr-') === 0 ) {
+					var attr = type.slice(type.indexOf('-')+1);
+					eles.each(function(){
+						console.log($(this).prop(attr));
+					});
+				}
+			});
 
-			
 			$('#selector_parts')
 				.on('click', '.deltog', function(){
 					$(this).parents('.selector_group').remove();
@@ -230,7 +242,9 @@
 				var _this = $(ele),
 					parent = _this.parents('.selector_group'),
 					pseudo_html = "<span class='pseudo toggleable no_select'>:" + pselector + "(" + 
-						"<span class='child_toggle' contenteditable='true'>1</span>)</span>";
+						"<span class='child_toggle' " +
+						"title='options: an+b (a & b are integers), a positive integer (1,2,3...), odd, even'" + 
+						"contenteditable='true'>1</span>)</span>";
 				parent.children('.pseudo').remove();
 				parent.children('.toggleable').last().after($(pseudo_html));
 				// make sure the element is on so this selector makes sense
@@ -288,7 +302,8 @@
 				selector = '',
 				group_selector = '',
 				tog_children,
-				len = index || groups.length;
+				len = index || groups.length,
+				group_text = [];
 			for (var g=0; g < len; g++) {
 				group_selector = '';
 				tog_children = groups.eq(g).children('.toggleable');
@@ -296,11 +311,14 @@
 					var curr = tog_children.eq(i);
 					group_selector += (curr.hasClass('off') && !index) ? '' : curr.text();
 				}
-				selector += (selector !== '' ? ' ':'') + group_selector;
+				if ( group_selector !== '' ) {
+					group_text.push(group_selector);
+				}
 			}
-			selector = selector.replace(/\s+/g, ' ');
+			selector = group_text.join(' ');
 			return selector;
 		}
+
 
 		function update_interface(){
 			var selector = get_test_selector();
@@ -322,31 +340,57 @@
 		}
 
 		function make_selector_text(element) {
-			function wrap_property(ele, val, before, after){
-				return (before || '') + '<span class="capture no_select" title="click to capture ' + val +
-					' property" data-capture="' + val + '">' + ele + '</span>' + (after || '');
+			var curr, attr, replace_regexp,
+				html_tag_regex = /<[^\/].+?>/g,
+				text_regex = />(.*?)</g,
+				broken_text = get_element_html(element),
+				// remove whitespace for regexp
+				text = broken_text.replace(/(\s\s+|[\n\t]+)/g, ''),
+				tags = text.match(html_tag_regex),
+				text_val = text.match(text_regex),
+				text_check = {},
+				properties;
+			// find tag attributes
+			if ( tags ) {
+				properties = unique_properties(tags);
+			}
+			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			// replace properties with capture spans
+			for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
+				curr = properties[i];
+				attr = curr.slice(0, curr.indexOf('='));
+				replace_regexp = new RegExp(escape_regexp(curr), 'g');
+				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
+			}
+
+			// create capture spans with 'text' targets on all text
+			if ( text_val ) {
+				for ( var t=0, text_len=text_val.length; t<text_len; t++) {
+					// strip preceding/trailing spaces
+					curr = text_val[t].slice(1,-1).replace(/(^\s*|\s*$)/g, '');
+					if ( !text_check[curr] && curr !== '' ) {
+						text_check[curr] = true;
+						var text_replace_regexp = new RegExp(escape_regexp(curr), 'g');
+						text = text.replace(text_replace_regexp, wrap_property(curr, 'text'));
+					}
+				}
+			}
+			return text;
+
+			function wrap_property(ele, val){
+				return '<span class="capture no_select" title="click to capture ' + val +
+					' property" data-capture="' + val + '">' + ele + '</span>';
 			}
 
 			function escape_regexp(str) {
 				return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 			}
 
-			var tag_properties, curr, attr, replace_regexp,
-				html_tag_regex = /<[^\/].+?>/g,
-				property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
-				text_regex = />(.+?)</g,
-				no_children = !$('#full_text').is(':checked'),
-				broken_text = get_element_html(element, no_children),
-				// remove whitespace for regexp
-				text = broken_text.replace(/(\s\s+|[\n\t]+)/g, ''),
-				tags = text.match(html_tag_regex),
-				text_val = text.match(text_regex),
-				text_check = {},
-				properties = [],
-				property_check = {};
-			// find tag attributes
-			for ( var e=0, tag_len=tags.length; e<tag_len; e++ ) {
-				tag_properties = tags[e].match(property_regex);
+			function unique_properties(tags) {
+				var property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
+					properties = [],
+					property_check = {},
+					tag_properties = tags.join('').match(property_regex);
 				if ( tag_properties ) {
 					// add unique attributes to properties array
 					for ( var p=0, tag_prop_len=tag_properties.length; p<tag_prop_len; p++ ) {
@@ -358,42 +402,21 @@
 						
 					}
 				}
+				return properties;
 			}
-			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-			// replace properties with capture spans
-			for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
-				curr = properties[i];
-				attr = curr.slice(0, curr.indexOf('='));
-				replace_regexp = new RegExp(escape_regexp(curr), 'g');
-				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
-			}
-			// create capture spans with 'text' targets on all text
-			if ( text_val ) {
-				for ( var t=0, text_len=text_val.length; t<text_len; t++) {
-					curr = text_val[t].replace(/</g,'&lt;').replace(/>/g,'&gt;');
-					if ( !text_check[curr] ) {
-						text_check[curr] = true;
-						var text_replace_regexp = new RegExp(escape_regexp(curr), 'g');
-						text = text.replace(text_replace_regexp,
-							wrap_property(curr.slice(4,-4), 'text', '&gt;', '&lt;'));
-					}
-				}
-			}
-			return text;
 		}
 		/*
 		returns the html code for the ele argument
 		*/
-		function get_element_html(ele, no_children){
+		function get_element_html(ele){
 			if (!ele) {
 				return '';
 			}
 			var holder = document.createElement('div'),
-				copy = ele.cloneNode(true);
-			$(copy).removeClass('query_check').removeClass('highlight');
-			if ( no_children ) {
-				$(copy).html('...');
-			}
+				copy = ele.cloneNode(true),
+				$copy = $(copy);
+			$copy.removeClass('query_check').removeClass('highlight');
+			$copy.html( $copy.text() );
 			holder.appendChild(copy);
 			return holder.innerHTML;
 		}
@@ -438,7 +461,14 @@
 		function Selector( ele ){
 			this.tag = ele.tagName;
 			this.id = ele.hasAttribute('id') ? '#' + ele.getAttribute('id') : undefined;
-			this.classes = ele.classList;
+			this.classes = [];
+			for ( var i=0, len=ele.classList.length; i<len; i++ ) {
+				var curr = ele.classList[i];
+				if ( curr === "highlight" || curr === "query_check" ) {
+					continue;
+				}
+				this.classes.push( '.' + curr );
+			}
 		}
 
 		/*
@@ -455,12 +485,7 @@
 			}
 			if ( this.classes.length ) {
 				for ( var pos=0, len=this.classes.length; pos < len; pos++ ) {
-					var curr = this.classes[pos];
-					// don't add classes added by this script
-					if ( curr === "highlight" || curr === "query_check" ) {
-						continue;
-					}
-					selector += wrap_toggleable('.' + curr);
+					selector += wrap_toggleable(this.classes[pos]);
 				}
 			}
 

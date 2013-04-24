@@ -47,7 +47,8 @@ def main():
 
 if __name__=="__main__":
 	parser = argparse.ArgumentParser(description="Build collect.js")
-	parser.add_argument('--upload', dest='upload', action='store_const', const=upload_to_s3)
+	parser.add_argument('--upload', dest='upload', action='store_const', const=upload_to_s3,
+		help='upload collect.js to s3')
 	args = parser.parse_args()
 	main()
 	if args.upload:
