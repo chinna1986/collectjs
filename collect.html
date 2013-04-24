@@ -4,13 +4,26 @@
 		<p id="selector_parts"></p>
 		<p id="selector_count"></p>
 		<p id="selector_text"></p>
-		<p>Selector: <input name="selector" id="selector_string" val="" /></p>
-		<p>Capture: <input name="capture" id="selector_capture" val="" /></p>
+		<form id="selector_form">
+			<p>
+				<label for="selector_name">Name:</label>
+				<input name="name" id="selector_name" val="" />
+			</p>
+			<p>
+				<label for="selector_string">Selector:</label>
+				<input name="selector" id="selector_string" val="" readonly />
+			</p>
+			<p>
+				<label for="selector_capture">Capture:</label>
+				<input name="capture" id="selector_capture" val="" readonly />
+			</p>
+			<button>Save</button>
+		</form>
 	</section>
 	<div id="control_buttons">
+		<button id="open_options">Options</button>
+		<button id="move_position">Move to Top</button>
 		<button id="off_button">Off</button>
 		<button id="close_selector">Close</button>
-		<button id="move_position">Move to Top</button>
-		<button id="open_options">Options</button>
 	</div>
 </div>

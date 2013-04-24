@@ -32,10 +32,31 @@
 							click: get_query_selector
 						});
 
-						$('#selector_parts').on('click', '.toggleable', function(){
-							$(this).toggleClass('off');
-							update_interface();
-						});
+						$('#selector_parts')
+							.on('click', '.child_toggle', function(event){
+								event.stopPropagation();
+							})
+							.on('blur', '.child_toggle', function(event){
+								event.stopPropagation();
+								// verify that nth-child is legitimate input
+								var _this = $(this),
+									text = _this.text().toLowerCase(),
+									/* matches nth-child selectors:
+										odd, even, positive integers, an+b, -an+b
+									*/
+									child_match = /^(?:odd|even|-?\d+n(?:\s*\+\s*\d+)?|\d+)$/;
+								if ( text.match(child_match) === null ) {
+									// if input is bad, reset to 1 and turn the selector off
+									_this
+										.text('1')
+										.parent().addClass('off');
+								}
+								update_interface();
+							})
+							.on('click', '.toggleable', function(){
+								$(this).toggleClass('off');
+								update_interface();
+							});
 					},
 					off: function(){
 						$(Collect.elements).off({
@@ -47,7 +68,8 @@
 						$('#selector_parts').off('click', '.toggleable');
 										}
 				};
-
+			
+			// bind to mouse entering elements
 			function select(event){
 				event.stopPropagation();
 				if ( highlighted ) {
@@ -56,13 +78,13 @@
 				// cache the currently highlighted object to prevent a future lookup
 				highlighted = $(this).addClass('highlight');
 			}
-
+			// bind to mouse leaving elements
 			function deselect(event){
 				event.stopPropagation();
 				$(this).removeClass('highlight');
 				highlighted = undefined;
 			}
-
+			// bind to clicking elements
 			function get_query_selector(event){
 				event.stopPropagation();
 				event.preventDefault();
@@ -90,7 +112,7 @@
 			var s = document.createElement('style');
 			s.setAttribute('id','collect-style');
 			s.innerText = ".highlight{" + this.highlight_css + "}" +
-				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 200px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{color: #222;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface button{font-size: 12px;float: none;clear: none;padding: 2px 5px;margin: 0;background: #efefef;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface button:hover{cursor:pointer;}#collect_interface.attach_bottom button {border-top: 0;}#selector_parts{line-height: 1.75em;}#selector_string{width: 400px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .deltog{background:#efefef;padding: 2px;margin-right: 3px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;}#collect_interface .deltog:hover{background: #666;color: #efefef;cursor: pointer;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{border: 1px solid #777;background: #ddd;padding: 2px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface #selector_text{line-height: 1.5em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}/* non-interface css */.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }";
+				".query_check {" + this.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;height: 220px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #control_buttons button{font-size: 12px;float: none;clear: none;padding: 2px 5px;margin: 0;background: #efefef;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface button:hover{cursor:pointer;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_string{width: 400px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface .group_options{background:#efefef;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;}#collect_interface .group_dropdown{position: absolute;display: none;z-index: 10003;background: #fff;top: 18px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}/* non-interface css */.highlight{border: 1px solid blue !important;} .query_check { background: yellow !important; border: 1px solid yellow; }";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		};
@@ -107,20 +129,15 @@
 		*/
 
 		Collect.make_interface = function() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><p>Selector: <input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p>Capture: <input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></section><div id=\"control_buttons\"><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button><button id=\"move_position\">Move to Top</button><button id=\"open_options\">Options</button></div></div>',
-				events_on = true;
-
+			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" readonly /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" readonly /></p><button>Save</button></form></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
+			this.interface_events();
+		};
 
-			$('#close_selector').click(function(event){
-				event.stopPropagation();
-				Collect.events.off();
-				$('.query_check').removeClass('query_check');
-				$('.highlight').removeClass('highlight');
-				$('#collect_interface, #options_interface, #collect-style').remove();
-			});
-
+		Collect.interface_events = function(){
+			var events_on = true;
+			// turn off events for highlighting/selecting page elements
 			$('#off_button').click(function(event){
 				event.stopPropagation();
 				var _this = $(this);
@@ -136,6 +153,16 @@
 				events_on = !events_on;
 			});
 
+			// close the collect interface
+			$('#close_selector').click(function(event){
+				event.stopPropagation();
+				Collect.events.off();
+				$('.query_check').removeClass('query_check');
+				$('.highlight').removeClass('highlight');
+				$('#collect_interface, #options_interface, #collect-style').remove();
+			});
+
+			// toggle interface between top and bottom of screen
 			$('#move_position').click(function(event){
 				event.stopPropagation();
 				var collect_interface = $('#collect_interface');
@@ -148,24 +175,60 @@
 				}
 			});
 
-			$('#selector_parts').on('click', '.deltog', function(){
-					var parent = this.parentElement,
-						prev = this.previousSibling;
-					parent.removeChild(prev);
-					parent.removeChild(this);
-				});
+			// select which attribute (or text) to capture desired data from query selected elements
 			$('#selector_text').on('click', '.capture', function(){
-					var _this = $(this);
-					$('#selector_capture').val( _this.data('capture') );
-				});
-		};
+				var _this = $(this);
+				$('#selector_capture').val( _this.data('capture') );
+			});
 
+			// create an object for the current query selector/capture data
+			$("#selector_form").on('submit', function(event){
+				event.preventDefault();
+				var _this = $(this),
+					serialized_form = _this.serialize(),
+					inputs = serialized_form.split('&'),
+					selector_object = {};
+				for ( var i=0, len=inputs.length; i<len; i++ ) {
+					var curr = inputs[i],
+						equal_pos = curr.indexOf('='),
+						name = curr.slice(0,equal_pos),
+						input_data = curr.slice(equal_pos+1);
+					selector_object[name] = input_data;
+				}
+
+				$('input', _this).val('');
+			});
+
+			
+			$('#selector_parts')
+				.on('click', '.deltog', function(){
+					$(this).parents('.selector_group').remove();
+				})
+				.on('click', '.nthchild', function(){
+					add_pseudo('nth-child', this);					
+				})
+				.on('click', '.nthtype', function(){
+					add_pseudo('nth-of-type', this);
+					
+				});
+
+			function add_pseudo(pselector, ele){
+				var _this = $(ele),
+					parent = _this.parents('.selector_group'),
+					pseudo_html = "<span class='pseudo toggleable no_select off'>:" + pselector + "(" + 
+						"<span class='child_toggle' contenteditable='true'>1</span>)</span>";
+				parent.children('.pseudo').remove();
+				parent.children('.toggleable').last().after($(pseudo_html));				
+			}
+
+			
+		};
 
 		/*
 		options modal and selection options
 		*/
 		Collect.options = function(){
-			var options_html = "<section id=\"collect_options\" class=\"options \"><h2 >Options</h2><p><label for=\"tables\">Include Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
+			var options_html = "<section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Include Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"full_text\">Show full element text/innerHTML</label><input type=\"checkbox\"  name=\"full_text\" id=\"full_text\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
 				options_element = $(options_html);
 			options_element.appendTo('body');
 			$('#options_interface, #options_interface *').addClass('no_select');
@@ -204,7 +267,7 @@
 		that are not switched off
 		*/
 		function get_test_selector() {
-			var groups = $('#selector_parts').children('.selector_group'),
+			var groups = $('#selector_parts .selector_group'),
 				selector = '',
 				group_selector = '',
 				tog_children;
@@ -241,24 +304,33 @@
 		}
 
 		function make_selector_text(element) {
-			function wrap_property(ele, val){
-				return '<span class="capture" title="click to capture ' + val +
-					' property" data-capture="' + val + '">' + ele + '</span>';
+			function wrap_property(ele, val, before, after){
+				return (before || '') + '<span class="capture no_select" title="click to capture ' + val +
+					' property" data-capture="' + val + '">' + ele + '</span>' + (after || '');
+			}
+
+			function escape_regexp(str) {
+				return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 			}
 
 			var tag_properties, curr, attr, replace_regexp,
 				html_tag_regex = /<[^\/].+?>/g,
 				property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
-				text_regex = />(.+)</g,
-				text = get_element_html(element),
+				text_regex = />(.+?)</g,
+				no_children = !$('#full_text').is(':checked'),
+				broken_text = get_element_html(element, no_children),
+				// remove whitespace for regexp
+				text = broken_text.replace(/(\s\s+|[\n\t]+)/g, ''),
 				tags = text.match(html_tag_regex),
-				text_val = text_regex.exec(text),
+				text_val = text.match(text_regex),
+				text_check = {},
 				properties = [],
 				property_check = {};
-
+			// find tag attributes
 			for( var e=0, tag_len=tags.length; e<tag_len; e++ ) {
 				tag_properties = tags[e].match(property_regex);
 				if ( tag_properties ) {
+					// add unique attributes to properties array
 					for( var p=0, tag_prop_len=tag_properties.length; p<tag_prop_len; p++ ) {
 						curr = tag_properties[p];
 						if ( !property_check[curr] ) { 
@@ -270,29 +342,40 @@
 				}
 			}
 			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			// replace properties with capture spans
 			for( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
 				curr = properties[i];
 				attr = curr.slice(0, curr.indexOf('='));
-				replace_regexp = new RegExp(curr, 'g');
+				replace_regexp = new RegExp(escape_regexp(curr), 'g');
 				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
 			}
-			if ( text_val ) {
-				curr = text_val[1];
-				text = text.replace(curr, wrap_property(curr, 'text'));
+			// create capture spans with 'text' targets on all text
+			if( text_val ) {
+				for( var t=0, text_len=text_val.length; t<text_len; t++) {
+					curr = text_val[t].replace(/</g,'&lt;').replace(/>/g,'&gt;');
+					if ( !text_check[curr] ){
+						text_check[curr] = true;
+						var text_replace_regexp = new RegExp(escape_regexp(curr), 'g');
+						text = text.replace(text_replace_regexp,
+							wrap_property(curr.slice(4,-4), 'text', '&gt;', '&lt;'));
+					}
+				}
 			}
 			return text;
 		}
-
 		/*
 		returns the html code for the ele argument
 		*/
-		function get_element_html(ele){
+		function get_element_html(ele, no_children){
 			if (!ele){
 				return '';
 			}
 			var holder = document.createElement('div'),
 				copy = ele.cloneNode(true);
 			$(copy).removeClass('query_check').removeClass('highlight');
+			if ( no_children ) {
+				$(copy).html('...');
+			}
 			holder.appendChild(copy);
 			return holder.innerHTML;
 		}
@@ -362,8 +445,16 @@
 					selector += wrap_toggleable('.' + curr);
 				}
 			}
+
 			return "<span class='selector_group no_select'>" + selector +
-				"</span><span class='deltog no_select'>x</span>";
+					"<span class='group_options no_select'>&#x25bc;" + 
+						"<div class='group_dropdown no_select'>"+
+							"<p class='nthchild no_select'>:nth-child</p>" +
+							"<p class='nthtype no_select'>:nth-of-type</p>" +
+							"<p class='deltog no_select'>Remove</p>" + 
+						"</div>" +
+					"</span>" + 
+				"</span>";
 		};
 
 		/********************

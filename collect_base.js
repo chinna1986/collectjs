@@ -32,10 +32,31 @@
 							click: get_query_selector
 						});
 
-						$('#selector_parts').on('click', '.toggleable', function(){
-							$(this).toggleClass('off');
-							update_interface();
-						});
+						$('#selector_parts')
+							.on('click', '.child_toggle', function(event){
+								event.stopPropagation();
+							})
+							.on('blur', '.child_toggle', function(event){
+								event.stopPropagation();
+								// verify that nth-child is legitimate input
+								var _this = $(this),
+									text = _this.text().toLowerCase(),
+									/* matches nth-child selectors:
+										odd, even, positive integers, an+b, -an+b
+									*/
+									child_match = /^(?:odd|even|-?\d+n(?:\s*\+\s*\d+)?|\d+)$/;
+								if ( text.match(child_match) === null ) {
+									// if input is bad, reset to 1 and turn the selector off
+									_this
+										.text('1')
+										.parent().addClass('off');
+								}
+								update_interface();
+							})
+							.on('click', '.toggleable', function(){
+								$(this).toggleClass('off');
+								update_interface();
+							});
 					},
 					off: function(){
 						$(Collect.elements).off({
@@ -107,20 +128,15 @@
 		*/
 
 		Collect.make_interface = function() {
-			var interface_html = '{{collect.html}}',
-				events_on = true;
-
+			var interface_html = '{{collect.html}}';
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
+			this.interface_events();
+		};
 
-			$('#close_selector').click(function(event){
-				event.stopPropagation();
-				Collect.events.off();
-				$('.query_check').removeClass('query_check');
-				$('.highlight').removeClass('highlight');
-				$('#collect_interface, #options_interface, #collect-style').remove();
-			});
-
+		Collect.interface_events = function(){
+			var events_on = true;
+			// turn off events for highlighting/selecting page elements
 			$('#off_button').click(function(event){
 				event.stopPropagation();
 				var _this = $(this);
@@ -136,6 +152,16 @@
 				events_on = !events_on;
 			});
 
+			// close the collect interface
+			$('#close_selector').click(function(event){
+				event.stopPropagation();
+				Collect.events.off();
+				$('.query_check').removeClass('query_check');
+				$('.highlight').removeClass('highlight');
+				$('#collect_interface, #options_interface, #collect-style').remove();
+			});
+
+			// toggle interface between top and bottom of screen
 			$('#move_position').click(function(event){
 				event.stopPropagation();
 				var collect_interface = $('#collect_interface');
@@ -148,18 +174,54 @@
 				}
 			});
 
-			$('#selector_parts').on('click', '.deltog', function(){
-					var parent = this.parentElement,
-						prev = this.previousSibling;
-					parent.removeChild(prev);
-					parent.removeChild(this);
-				});
+			// select which attribute (or text) to capture desired data from query selected elements
 			$('#selector_text').on('click', '.capture', function(){
-					var _this = $(this);
-					$('#selector_capture').val( _this.data('capture') );
-				});
-		};
+				var _this = $(this);
+				$('#selector_capture').val( _this.data('capture') );
+			});
 
+			// create an object for the current query selector/capture data
+			$("#selector_form").on('submit', function(event){
+				event.preventDefault();
+				var _this = $(this),
+					serialized_form = _this.serialize(),
+					inputs = serialized_form.split('&'),
+					selector_object = {};
+				for ( var i=0, len=inputs.length; i<len; i++ ) {
+					var curr = inputs[i],
+						equal_pos = curr.indexOf('='),
+						name = curr.slice(0,equal_pos),
+						input_data = curr.slice(equal_pos+1);
+					selector_object[name] = input_data;
+				}
+
+				$('input', _this).val('');
+			});
+
+			
+			$('#selector_parts')
+				.on('click', '.deltog', function(){
+					$(this).parents('.selector_group').remove();
+				})
+				.on('click', '.nthchild', function(){
+					add_pseudo('nth-child', this);					
+				})
+				.on('click', '.nthtype', function(){
+					add_pseudo('nth-of-type', this);
+					
+				});
+
+			function add_pseudo(pselector, ele){
+				var _this = $(ele),
+					parent = _this.parents('.selector_group'),
+					pseudo_html = "<span class='pseudo toggleable no_select off'>:" + pselector + "(" + 
+						"<span class='child_toggle' contenteditable='true'>1</span>)</span>";
+				parent.children('.pseudo').remove();
+				parent.children('.toggleable').last().after($(pseudo_html));				
+			}
+
+			
+		};
 
 		/*
 		options modal and selection options
@@ -204,7 +266,7 @@
 		that are not switched off
 		*/
 		function get_test_selector() {
-			var groups = $('#selector_parts').children('.selector_group'),
+			var groups = $('#selector_parts .selector_group'),
 				selector = '',
 				group_selector = '',
 				tog_children;
@@ -241,24 +303,33 @@
 		}
 
 		function make_selector_text(element) {
-			function wrap_property(ele, val){
-				return '<span class="capture" title="click to capture ' + val +
-					' property" data-capture="' + val + '">' + ele + '</span>';
+			function wrap_property(ele, val, before, after){
+				return (before || '') + '<span class="capture no_select" title="click to capture ' + val +
+					' property" data-capture="' + val + '">' + ele + '</span>' + (after || '');
+			}
+
+			function escape_regexp(str) {
+				return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 			}
 
 			var tag_properties, curr, attr, replace_regexp,
 				html_tag_regex = /<[^\/].+?>/g,
 				property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
-				text_regex = />(.+)</g,
-				text = get_element_html(element),
+				text_regex = />(.+?)</g,
+				no_children = !$('#full_text').is(':checked'),
+				broken_text = get_element_html(element, no_children),
+				// remove whitespace for regexp
+				text = broken_text.replace(/(\s\s+|[\n\t]+)/g, ''),
 				tags = text.match(html_tag_regex),
-				text_val = text_regex.exec(text),
+				text_val = text.match(text_regex),
+				text_check = {},
 				properties = [],
 				property_check = {};
-
+			// find tag attributes
 			for( var e=0, tag_len=tags.length; e<tag_len; e++ ) {
 				tag_properties = tags[e].match(property_regex);
 				if ( tag_properties ) {
+					// add unique attributes to properties array
 					for( var p=0, tag_prop_len=tag_properties.length; p<tag_prop_len; p++ ) {
 						curr = tag_properties[p];
 						if ( !property_check[curr] ) { 
@@ -270,29 +341,40 @@
 				}
 			}
 			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			// replace properties with capture spans
 			for( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
 				curr = properties[i];
 				attr = curr.slice(0, curr.indexOf('='));
-				replace_regexp = new RegExp(curr, 'g');
+				replace_regexp = new RegExp(escape_regexp(curr), 'g');
 				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
 			}
-			if ( text_val ) {
-				curr = text_val[1];
-				text = text.replace(curr, wrap_property(curr, 'text'));
+			// create capture spans with 'text' targets on all text
+			if( text_val ) {
+				for( var t=0, text_len=text_val.length; t<text_len; t++) {
+					curr = text_val[t].replace(/</g,'&lt;').replace(/>/g,'&gt;');
+					if ( !text_check[curr] ){
+						text_check[curr] = true;
+						var text_replace_regexp = new RegExp(escape_regexp(curr), 'g');
+						text = text.replace(text_replace_regexp,
+							wrap_property(curr.slice(4,-4), 'text', '&gt;', '&lt;'));
+					}
+				}
 			}
 			return text;
 		}
-
 		/*
 		returns the html code for the ele argument
 		*/
-		function get_element_html(ele){
+		function get_element_html(ele, no_children){
 			if (!ele){
 				return '';
 			}
 			var holder = document.createElement('div'),
 				copy = ele.cloneNode(true);
 			$(copy).removeClass('query_check').removeClass('highlight');
+			if ( no_children ) {
+				$(copy).html('...');
+			}
 			holder.appendChild(copy);
 			return holder.innerHTML;
 		}
@@ -362,8 +444,16 @@
 					selector += wrap_toggleable('.' + curr);
 				}
 			}
+
 			return "<span class='selector_group no_select'>" + selector +
-				"</span><span class='deltog no_select'>x</span>";
+					"<span class='group_options no_select'>&#x25bc;" + 
+						"<div class='group_dropdown no_select'>"+
+							"<p class='nthchild no_select'>:nth-child</p>" +
+							"<p class='nthtype no_select'>:nth-of-type</p>" +
+							"<p class='deltog no_select'>Remove</p>" + 
+						"</div>" +
+					"</span>" + 
+				"</span>";
 		};
 
 		/********************
