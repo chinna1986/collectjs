@@ -72,8 +72,8 @@
 #selector_parts{
 	line-height: 2em;
 }
-#selector_string{
-	width: 400px;
+#selector_form input{
+	width: 80%;
 }
 #collect_interface .toggleable{
 	cursor: pointer;
@@ -95,6 +95,11 @@
 	border-right: 0;
 	padding: 2px 0 2px 2px;
 	position: relative;
+}
+
+#collect_interface #selector_form label{
+	display: inline-block;
+	width: 75px;
 }
 
 #collect_interface .off{

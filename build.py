@@ -4,6 +4,9 @@ deal with javascript string formatting
 """
 
 import re
+import argparse
+from boto.s3.connection import S3Connection
+from boto.s3.key import Key
 
 def insert_javascript(filename):
 	"""
@@ -20,6 +23,20 @@ def insert_code(filename):
 	code = re.sub(r'[\t\n\r\f\v]', '', code)
 	return code
 
+def upload_to_s3():
+	with open('.env') as fp:
+		access, secret_access = fp.read().split('\n', 1)
+	if access is None or secret_access is None:
+		return
+	conn = S3Connection(access, secret_access)
+	bucket = conn.get_bucket('collectjs')
+	k = Key(bucket)
+	k.key = 'collect.js'
+	k.set_contents_from_filename('collect.js')
+	k.set_acl('public-read')
+	return
+	
+
 def main():
 	javascript = insert_javascript('collect_base.js')
 	codematch = re.compile(r'{{([a-zA-Z.]+)}}')
@@ -29,4 +46,9 @@ def main():
 		fp.write(javascript)
 
 if __name__=="__main__":
+	parser = argparse.ArgumentParser(description="Build collect.js")
+	parser.add_argument('--upload', dest='upload', action='store_const', const=upload_to_s3)
+	args = parser.parse_args()
 	main()
+	if args.upload:
+		args.upload()

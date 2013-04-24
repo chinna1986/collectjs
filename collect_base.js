@@ -216,6 +216,7 @@
 			$('#selector_parts')
 				.on('click', '.deltog', function(){
 					$(this).parents('.selector_group').remove();
+					update_interface();
 				})
 				.on('click', '.nthchild', function(){
 					add_pseudo('nth-child', this);					
@@ -228,10 +229,13 @@
 			function add_pseudo(pselector, ele){
 				var _this = $(ele),
 					parent = _this.parents('.selector_group'),
-					pseudo_html = "<span class='pseudo toggleable no_select off'>:" + pselector + "(" + 
+					pseudo_html = "<span class='pseudo toggleable no_select'>:" + pselector + "(" + 
 						"<span class='child_toggle' contenteditable='true'>1</span>)</span>";
 				parent.children('.pseudo').remove();
-				parent.children('.toggleable').last().after($(pseudo_html));				
+				parent.children('.toggleable').last().after($(pseudo_html));
+				// make sure the element is on so this selector makes sense
+				parent.children('.toggleable').eq(0).removeClass('off');
+				update_interface();
 			}
 
 			
