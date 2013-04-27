@@ -29,47 +29,7 @@
 							mouseenter: select,
 							mouseleave: deselect,
 							click: get_query_selector
-						});
-
-						$('#selector_parts')
-							.on('click', '.child_toggle', function(event){
-								event.stopPropagation();
-							})
-							.on('blur', '.child_toggle', function(event){
-								event.stopPropagation();
-								// verify that nth-child is legitimate input
-								var _this = $(this),
-									text = _this.text().toLowerCase(),
-									/* matches nth-child selectors:
-										odd, even, positive integers, an+b, -an+b
-									*/
-									child_match = /^(?:odd|even|-?\d+n(?:\s*(?:\+|-)\s*\d+)?|\d+)$/;
-								if ( text.match(child_match) === null ) {
-									// if input is bad, reset to 1 and turn the selector off
-									_this.text('1').parent().addClass('off');
-								}
-								update_interface();
-							})
-							.on('click', '.toggleable', function(){
-								$(this).toggleClass('off');
-								update_interface();
-							})
-							.on('mouseenter', '.selector_group', function(){
-								var index = 0,
-									elem = this,
-									selector;
-								while ( (elem=elem.previousElementSibling) !== null ) {
-									index++;
-								}
-								// + 1 to include the hovered selector
-								selector = get_test_selector(index + 1);
-								$('.highlight').removeClass('highlight');
-								$(selector).addClass('highlight');
-							})
-							.on('mouseleave', '.selector_group', function(){
-								$('.highlight').removeClass('highlight');
-							});
-							
+						});						
 					},
 					off: function(){
 						$(Collect.elements).off({
@@ -209,7 +169,7 @@
 			$('#collect_preview').on('click', function(event){
 				event.preventDefault();
 				var selector = $('#selector_string').val(),
-					eles = $(selector),
+					eles = get_full_selector_elements(selector),
 					type = $('#selector_capture').val();
 				if ( type === '' ) {
 					console.log("No attribute to capture");
@@ -226,6 +186,43 @@
 			});
 
 			$('#selector_parts')
+				.on('click', '.child_toggle', function(event){
+					event.stopPropagation();
+				})
+				.on('blur', '.child_toggle', function(event){
+					event.stopPropagation();
+					// verify that nth-child is legitimate input
+					var _this = $(this),
+						text = _this.text().toLowerCase(),
+						/* matches nth-child selectors:
+							odd, even, positive integers, an+b, -an+b
+						*/
+						child_match = /^(?:odd|even|-?\d+n(?:\s*(?:\+|-)\s*\d+)?|\d+)$/;
+					if ( text.match(child_match) === null ) {
+						// if input is bad, reset to 1 and turn the selector off
+						_this.text('1').parent().addClass('off');
+					}
+					update_interface();
+				})
+				.on('click', '.toggleable', function(){
+					$(this).toggleClass('off');
+					update_interface();
+				})
+				.on('mouseenter', '.selector_group', function(){
+					var index = 0,
+						elem = this,
+						selector;
+					while ( (elem=elem.previousElementSibling) !== null ) {
+						index++;
+					}
+					// + 1 to include the hovered selector
+					selector = get_base_selector(index + 1);
+					$('.highlight').removeClass('highlight');
+					get_full_selector_elements(selector).addClass('highlight');
+				})
+				.on('mouseleave', '.selector_group', function(){
+					$('.highlight').removeClass('highlight');
+				})
 				.on('click', '.deltog', function(){
 					$(this).parents('.selector_group').remove();
 					update_interface();
@@ -297,7 +294,7 @@
 		iterates over selector group elements and builds a string based on toggleable elements
 		that are not switched off
 		*/
-		function get_test_selector(index) {
+		function get_base_selector(index) {
 			var groups = $('#selector_parts .selector_group'),
 				selector = '',
 				group_selector = '',
@@ -319,9 +316,19 @@
 			return selector;
 		}
 
+		/*
+		given a selector, apply user options, exclude .no_select elements, and return jquery array
+		*/
+		function get_full_selector_elements(selector) {
+			if ( $('#visible').is(':checked') ) {
+				selector += ':visible';
+			}
+			selector += ':not(.no_select)';
+			return $(selector);
+		}
 
 		function update_interface(){
-			var selector = get_test_selector();
+			var selector = get_base_selector();
 			$('.query_check').removeClass('query_check');
 			var selected;
 			$('#selector_capture').val('');
@@ -331,7 +338,7 @@
 				$('#selector_text').html("");
 				return;
 			} else {
-				selected = $( selector + ':not(.no_select)');
+				selected = get_full_selector_elements(selector);
 				selected.addClass('query_check');
 				$('#selector_count').html("Count: " + selected.length);
 				$('#selector_string').val(selector);
@@ -349,7 +356,7 @@
 				tags = text.match(html_tag_regex),
 				text_val = text.match(text_regex),
 				text_check = {},
-				properties;
+				properties = [];
 			// find tag attributes
 			if ( tags ) {
 				properties = unique_properties(tags);
@@ -511,15 +518,20 @@
 	var v = "1.9.1";
 	if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
 		var done = false,
-			script = document.createElement("script");
+			script = document.createElement("script"),
+			jquery_backup;
 		script.src = "https://ajax.googleapis.com/ajax/libs/jquery/" + v + "/jquery.min.js";
 		script.onload = script.onreadystatechange = function(){
 			if (!done && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")) {
 				done = true;
-				var collect = make_collect(jQuery);
+				// because jquery is attached to widnow, noconflict to prevent interfering with
+				// native page's jquery
+				var jQuery191 = jQuery.noConflict(),
+					collect = make_collect(jQuery191);
 				collect.setup();
 			}
 		};
+
 		document.getElementsByTagName("head")[0].appendChild(script);
 	} else {
 		var collect = make_collect(jQuery);
