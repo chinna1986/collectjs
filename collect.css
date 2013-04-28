@@ -6,7 +6,8 @@ to prevent possible selector collisions on sites the script is run on
 	position: fixed;
 	left: 25%;
 	width: 50%;
-	height: 220px;
+	min-height: 220px;
+	max-height: 300px;
 	padding: 5px 20px;
 	background: #fff;
 	z-index: 10000;
@@ -81,6 +82,7 @@ to prevent possible selector collisions on sites the script is run on
 	font-weight: normal;
 	padding: 0 5px;
 	border: 1px outset #ccc;
+	text-transform: none;
 }
 
 #collect_interface.attach_bottom  #control_buttons button{
@@ -131,6 +133,7 @@ to prevent possible selector collisions on sites the script is run on
 
 #collect_interface .group_options{
 	background:#efefef;
+	color: #777;
 	padding: 2px;
 	border-width: 1px 1px 1px 0;
 	border-style: solid;
@@ -140,8 +143,10 @@ to prevent possible selector collisions on sites the script is run on
 	position: relative;
 }
 
+
 #collect_interface .group_dropdown{
 	position: absolute;
+	color: #222;
 	display: none;
 	z-index: 10003;
 	background: #fff;
@@ -167,6 +172,13 @@ to prevent possible selector collisions on sites the script is run on
 
 #collect_interface #selector_text *{
 	line-height: 2em;
+}
+
+.saved_selector{
+	padding: 2px 5px;
+	border: 1px solid #777;
+	cursor: pointer;
+	background: #efefef;
 }
 
 /* options modal */

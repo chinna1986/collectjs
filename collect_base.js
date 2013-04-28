@@ -7,7 +7,8 @@
 		var Collect = {
 			highlight_css: "border:1px solid blue !important;",
 			check_css: "background: yellow !important; border: 1px solid yellow !important;",
-			elements: "body *:not(.no_select)"
+			elements: "body *:not(.no_select)",
+			rules: []
 		};
 
 		Collect.setup = function(args){
@@ -37,9 +38,7 @@
 							mouseleave: deselect,
 							click: get_query_selector
 						});
-
-						$('#selector_parts').off('click', '.toggleable');
-										}
+					}
 				};
 
 			function select(event){
@@ -58,16 +57,7 @@
 				if ( this === null ) {
 					return;
 				}
-				var long_selector = '';
-				$('.collect_highlight').removeClass('collect_highlight');
-				/*
-				when clicking on an option element, 'this' is the select element, so use the first
-				child option so that that is included in the long selector
-				*/
-				var ele = this.tagName === "SELECT" ? this.children[0] : this;
-				long_selector = get_element_selector(ele);
-				$('#selector_parts').html(long_selector);
-				update_interface();
+				set_selector_parts(this);
 			}
 
 			return event_obj;
@@ -136,7 +126,7 @@
 				Collect.events.off();
 				$('.query_check').removeClass('query_check');
 				$('.collect_highlight').removeClass('collect_highlight');
-				$('#collect_interface, #options_interface, #collect-style', '#options_background').remove();
+				$('#collect_interface, #options_interface, #collect-style, #options_background').remove();
 			});
 
 			// toggle interface between top and bottom of screen
@@ -161,8 +151,8 @@
 			// create an object for the current query selector/capture data
 			$('#collect_save').on('click', function(event){
 				event.preventDefault();
-				var _this = $(this),
-					serialized_form = _this.serialize(),
+				var form = $('#selector_form'),
+					serialized_form = form.serialize(),
 					inputs = serialized_form.split('&'),
 					selector_object = {};
 				for ( var i=0, len=inputs.length; i<len; i++ ) {
@@ -170,11 +160,32 @@
 						equal_pos = curr.indexOf('='),
 						name = curr.slice(0,equal_pos),
 						input_data = curr.slice(equal_pos+1);
+					if ( input_data === '' ) {
+						console.log('missing attribute: ' + name);
+						return;
+					}
 					selector_object[name] = input_data;
 				}
-
-				$('input', _this).val('');
+				add_saved_selector(selector_object);
+				Collect.rules.push(selector_object);
+				clear_interface();
 			});
+
+			function add_saved_selector(obj){
+				var saved = $('#saved_selectors');
+				saved.append('<span class="saved_selector"' + 
+					'data-selector="' + obj.selector + '" data-capture="' + obj.capture + '">' +
+					obj.name + '</span>');
+			}
+
+			$('#saved_selectors').on('click', '.saved_selector', function(){
+				var _this = $(this),
+					ele = $(_this.data('selector')).get(0);
+				set_selector_parts(ele);
+				$('#selector_name').val(_this.text());
+				$('#selector_capture').val(_this.data('capture'));
+			})
+
 			$('#collect_preview').on('click', function(event){
 				event.preventDefault();
 				var selector = $('#selector_string').val(),
@@ -332,9 +343,6 @@
 			return $(selector);
 		}
 
-		/*
-		
-		*/
 		function update_interface(){
 			fix_dropdown_overflow();
 			var selector = get_base_selector();
@@ -353,6 +361,12 @@
 				$('#selector_string').val(selector);
 				$('#selector_text').html(make_selector_text(selected[0]) || "no text");
 			}
+		}
+
+		function clear_interface(){
+			$('#selector_form input').val('');
+			$('#selector_parts, #selector_count, #selector_text').html('');
+			$('.query_check').removeClass('query_check');
 		}
 
 		/*
@@ -424,6 +438,19 @@
 				return properties;
 			}
 		}
+
+		function set_selector_parts(ele){
+			var long_selector = '';
+			$('.collect_highlight').removeClass('collect_highlight');
+			// get option, not select
+			if ( ele.tagName === "SELECT" ) {
+				ele = ele.children[0];
+			}
+			long_selector = get_element_selector(ele);
+			$('#selector_parts').html(long_selector);
+			update_interface();
+		}
+
 
 		/*
 		returns the html for a set of "group selectors" used to describe the ele argument's css 
@@ -549,5 +576,4 @@
 		collect = make_collect(jQuery);
 		collect.setup();
 	}
-	
 })();
