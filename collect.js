@@ -16,9 +16,9 @@
 				this.check_css = args.check_css || this.check_css;
 				this.elements = args.elements || this.elements;
 			}
-			this.make_interface();
-			this.options();
-			this.css();
+			add_interface();
+			add_options();
+			add_css();
 			this.events.on();
 		};
 
@@ -44,12 +44,12 @@
 
 			function select(event){
 				event.stopPropagation();
-				$(this).addClass('highlight');
+				$(this).addClass('collect_highlight');
 			}
 
 			function deselect(event){
 				event.stopPropagation();
-				$(this).removeClass('highlight');
+				$(this).removeClass('collect_highlight');
 			}
 
 			function get_query_selector(event){
@@ -59,16 +59,13 @@
 					return;
 				}
 				var long_selector = '';
-				$('.highlight').removeClass('highlight');
+				$('.collect_highlight').removeClass('collect_highlight');
 				/*
 				when clicking on an option element, 'this' is the select element, so use the first
 				child option so that that is included in the long selector
 				*/
-				if ( this.tagName === "SELECT" ) {
-					long_selector = get_element_selector(this.children[0]);	
-				} else {
-					long_selector = get_element_selector(this);
-				}
+				var ele = this.tagName === "SELECT" ? this.children[0] : this;
+				long_selector = get_element_selector(ele);
 				$('#selector_parts').html(long_selector);
 				update_interface();
 			}
@@ -76,14 +73,6 @@
 			return event_obj;
 		})();
 
-		Collect.css = function() {
-			var s = document.createElement('style');
-			s.setAttribute('id','collect-style');
-			s.innerText = ".highlight{" + this.highlight_css + "}" +
-				".query_check {" + this.check_css + "}" + "/*#collect_interface shouldn\'t be necessary for most of these rules, but they are includedto prevent possible selector collisions on sites the script is run on*/#collect_interface{position: fixed;left: 25%;width: 50%;height: 220px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface button{line-height: 1em;height: 2em;float: none;clear: none;cursor:pointer;background: #efefef;font-size: 12px;font-weight: normal;border-radius: 2px;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface .group_options{background:#efefef;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;}#collect_interface .group_dropdown{position: absolute;display: none;z-index: 10003;background: #fff;top: 18px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}/* non-interface css */.highlight{border: 1px solid blue !important;} /* breaks formatting, but shows border on table rows */ tr.highlight{ display: table; }.query_check { background: yellow !important; border: 1px solid yellow; }";
-			s.setAttribute('type','text/css');
-			$('head').append(s);
-		};
 		/*
 		not yet implemented
 		Collect.load = function(json_url){
@@ -96,14 +85,34 @@
 		};
 		*/
 
-		Collect.make_interface = function() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" readonly /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" readonly /></p><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button></form></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
+		/***************
+		END COLLECT OBJECT
+		***************/
+
+		/********************
+		PRIVATE FUNCTIONS
+		********************/
+
+		function add_css() {
+			var s = document.createElement('style');
+			s.setAttribute('id','collect-style');
+			s.innerText = ".collect_highlight{" + Collect.highlight_css + "}" +
+				".query_check {" + Collect.check_css + "}" + "/*#collect_interface shouldn\'t be necessary for most of these rules, but they are includedto prevent possible selector collisions on sites the script is run on*/#collect_interface{position: fixed;left: 25%;width: 50%;height: 220px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface .group_options{background:#efefef;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}/* non-interface css */.collect_highlight{border: 1px solid blue !important;} /* breaks formatting, but shows border on table rows */ tr.collect_highlight{ display: table; }.query_check { background: yellow !important; border: 1px solid yellow; }";
+			s.setAttribute('type','text/css');
+			$('head').append(s);
+		}
+
+		function add_interface() {
+			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" readonly /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" readonly /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button></form></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
-			this.interface_events();
-		};
+			add_interface_events();
+		}
 
-		Collect.interface_events = function(){
+		/*
+		event listeners associated with elements inside of the collect_interface
+		*/
+		function add_interface_events(){
 			var events_on = true;
 			// turn off events for highlighting/selecting page elements
 			$('#off_button').click(function(event){
@@ -113,7 +122,7 @@
 					Collect.events.off();
 					_this.text('On');
 					$('.query_check').removeClass('query_check');
-					$('.highlight').removeClass('highlight');
+					$('.collect_highlight').removeClass('collect_highlight');
 				} else {
 					Collect.events.on();
 					_this.text('Off');
@@ -126,8 +135,8 @@
 				event.stopPropagation();
 				Collect.events.off();
 				$('.query_check').removeClass('query_check');
-				$('.highlight').removeClass('highlight');
-				$('#collect_interface, #options_interface, #collect-style').remove();
+				$('.collect_highlight').removeClass('collect_highlight');
+				$('#collect_interface, #options_interface, #collect-style', '#options_background').remove();
 			});
 
 			// toggle interface between top and bottom of screen
@@ -171,7 +180,7 @@
 				var selector = $('#selector_string').val(),
 					eles = get_full_selector_elements(selector),
 					type = $('#selector_capture').val();
-				if ( type === '' ) {
+				if ( selector === '' || type === '' ) {
 					console.log("No attribute to capture");
 				} else if ( type === 'text' ) {
 					eles.each(function(){
@@ -208,6 +217,9 @@
 					$(this).toggleClass('off');
 					update_interface();
 				})
+				.on('mouseenter', '.group_options', function(event){
+					event.stopPropagation();
+				})
 				.on('mouseenter', '.selector_group', function(){
 					var index = 0,
 						elem = this,
@@ -217,11 +229,11 @@
 					}
 					// + 1 to include the hovered selector
 					selector = get_base_selector(index + 1);
-					$('.highlight').removeClass('highlight');
-					get_full_selector_elements(selector).addClass('highlight');
+					$('.collect_highlight').removeClass('collect_highlight');
+					get_full_selector_elements(selector).addClass('collect_highlight');
 				})
 				.on('mouseleave', '.selector_group', function(){
-					$('.highlight').removeClass('highlight');
+					$('.collect_highlight').removeClass('collect_highlight');
 				})
 				.on('click', '.deltog', function(){
 					$(this).parents('.selector_group').remove();
@@ -250,30 +262,29 @@
 			}
 
 			
-		};
+		}
 
 		/*
 		options modal and selection options
 		*/
-		Collect.options = function(){
-			var options_html = "<section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Hide Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"visible\">Only include visible elements</label><input type=\"checkbox\"  name=\"visible\" id=\"visible\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
+		function add_options(){
+			var options_html = "<div id=\"options_background\"></div><section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Hide Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"visible\">Only include visible elements</label><input type=\"checkbox\"  name=\"visible\" id=\"visible\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
 				options_element = $(options_html);
 			options_element.appendTo('body');
-			$('#options_interface, #options_interface *').addClass('no_select');
-
-			$("#open_options, #close_options").click(function(event){
+			$('#options_background, #options_interface, #options_interface *').addClass('no_select');
+			$("#open_options, #close_options, #options_background").click(function(event){
 				event.preventDefault();
 				event.stopPropagation();
 				options_element.toggle();
 			});
 
-		};
+		}
 
 		/*
 		takes an element and applies the rules based on the options, returning true if it passes
 		all requirements
 		*/
-		Collect.rules = function(ele){
+		function selector_rules(ele){
 			// Include Table Elements rule
 			var ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT', 'COL', 'COLGROUP'],
 				no_tables = $('#tables').is(':checked');
@@ -282,14 +293,8 @@
 			}
 
 			return true;
-		};
-		/***************
-		END COLLECT OBJECT
-		***************/
-
-		/********************
-		PRIVATE FUNCTIONS
-		********************/
+		}
+		
 		/*
 		iterates over selector group elements and builds a string based on toggleable elements
 		that are not switched off
@@ -327,7 +332,11 @@
 			return $(selector);
 		}
 
+		/*
+		
+		*/
 		function update_interface(){
+			fix_dropdown_overflow();
 			var selector = get_base_selector();
 			$('.query_check').removeClass('query_check');
 			var selected;
@@ -346,15 +355,14 @@
 			}
 		}
 
+		/*
+		given an element, return html for selector text with "capture"able parts wrapped
+		*/
 		function make_selector_text(element) {
 			var curr, attr, replace_regexp,
-				html_tag_regex = /<[^\/].+?>/g,
-				text_regex = />(.*?)</g,
-				broken_text = get_element_html(element),
-				// remove whitespace for regexp
-				text = broken_text.replace(/(\s\s+|[\n\t]+)/g, ''),
-				tags = text.match(html_tag_regex),
-				text_val = text.match(text_regex),
+				text = element.outerHTML.replace(/(\s\s+|[\n\t]+)/g, ''),
+				tags = text.match(/<[^\/].+?>/g),
+				text_val = text.match(/>(.*?)</g),
 				text_check = {},
 				properties = [];
 			// find tag attributes
@@ -372,23 +380,27 @@
 
 			// create capture spans with 'text' targets on all text
 			if ( text_val ) {
+				var regexp_string, text_replace_regexp, replace_string;
 				for ( var t=0, text_len=text_val.length; t<text_len; t++) {
 					// strip preceding/trailing spaces
 					curr = text_val[t].slice(1,-1).replace(/(^\s*|\s*$)/g, '');
 					if ( !text_check[curr] && curr !== '' ) {
 						text_check[curr] = true;
-						var text_replace_regexp = new RegExp(escape_regexp(curr), 'g');
-						text = text.replace(text_replace_regexp, wrap_property(curr, 'text'));
+						regexp_string = '(?:&gt;\\s*)(' + escape_regexp(curr) + ')(?:\\s*&lt;)',
+						text_replace_regexp = new RegExp(regexp_string, 'g');
+						replace_string = wrap_property(curr, 'text', '&gt;', '&lt;');
+						text = text.replace(text_replace_regexp, replace_string);
 					}
 				}
 			}
 			return text;
 
-			function wrap_property(ele, val){
-				return '<span class="capture no_select" title="click to capture ' + val +
-					' property" data-capture="' + val + '">' + ele + '</span>';
+			function wrap_property(ele, val, before, after){
+				return (before || '') + '<span class="capture no_select" title="click to capture ' + val +
+					' property" data-capture="' + val + '">' + ele + '</span>' + (after || '');
 			}
 
+			// escape a string for a new RegExp call
 			function escape_regexp(str) {
 				return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 			}
@@ -412,21 +424,6 @@
 				return properties;
 			}
 		}
-		/*
-		returns the html code for the ele argument
-		*/
-		function get_element_html(ele){
-			if (!ele) {
-				return '';
-			}
-			var holder = document.createElement('div'),
-				copy = ele.cloneNode(true),
-				$copy = $(copy);
-			$copy.removeClass('query_check').removeClass('highlight');
-			$copy.html( $copy.text() );
-			holder.appendChild(copy);
-			return holder.innerHTML;
-		}
 
 		/*
 		returns the html for a set of "group selectors" used to describe the ele argument's css 
@@ -442,7 +439,7 @@
 				toggle_on = true;
 			// stop generating selector when you get to the body element
 			while ( ele.tagName !== "BODY" ){
-				if ( !Collect.rules(ele) ) {
+				if ( !selector_rules(ele) ) {
 					ele = ele.parentElement;
 					continue;
 				}
@@ -455,6 +452,23 @@
 				ele = ele.parentElement;
 			}
 			return selector;
+		}
+
+		/*
+		because the interface has a fixed position, anything that overflows has to be hidden.
+		*/
+		function fix_dropdown_overflow(){
+			var interface_left = $('#collect_interface').offset().left,
+				groups = $('.group_options');
+			groups.each(function(){
+				var _this = $(this),
+					group_left = _this.offset().left;
+				if ( group_left - interface_left < 80 ) {
+					$('.group_dropdown', _this).css({'left':'0', 'right':''});
+				} else {
+					$('.group_dropdown', _this).css({'right':'0', 'left':''});
+				}
+			});
 		}
 
 		/********************
@@ -471,7 +485,7 @@
 			this.classes = [];
 			for ( var i=0, len=ele.classList.length; i<len; i++ ) {
 				var curr = ele.classList[i];
-				if ( curr === "highlight" || curr === "query_check" ) {
+				if ( curr === "collect_highlight" || curr === "query_check" ) {
 					continue;
 				}
 				this.classes.push( '.' + curr );
@@ -510,31 +524,29 @@
 		/********************
 		END SELECTOR OBJECT
 		********************/
-
 		return Collect;	
-
 	};
 
-	var v = "1.9.1";
+	var v = "1.9.1",
+		collect;
 	if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
 		var done = false,
-			script = document.createElement("script"),
-			jquery_backup;
+			script = document.createElement("script");
 		script.src = "https://ajax.googleapis.com/ajax/libs/jquery/" + v + "/jquery.min.js";
 		script.onload = script.onreadystatechange = function(){
 			if (!done && (!this.readyState || this.readyState === "loaded" || this.readyState === "complete")) {
 				done = true;
 				// because jquery is attached to widnow, noconflict to prevent interfering with
 				// native page's jquery
-				var jQuery191 = jQuery.noConflict(),
-					collect = make_collect(jQuery191);
+				var jQuery191 = jQuery.noConflict();
+				collect = make_collect(jQuery191);
 				collect.setup();
 			}
 		};
 
 		document.getElementsByTagName("head")[0].appendChild(script);
 	} else {
-		var collect = make_collect(jQuery);
+		collect = make_collect(jQuery);
 		collect.setup();
 	}
 	
