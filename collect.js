@@ -57,7 +57,7 @@
 				if ( this === null ) {
 					return;
 				}
-				set_selector_parts(this);
+				set_selector_parts(this, true);
 			}
 
 			return event_obj;
@@ -93,7 +93,7 @@
 		}
 
 		function add_interface() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" readonly /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" readonly /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
+			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
 			add_interface_events();
@@ -178,13 +178,16 @@
 					obj.name + '</span>');
 			}
 
-			$('#saved_selectors').on('click', '.saved_selector', function(){
+			$('#saved_selectors').on('click', '.saved_selector', function(event){
+				event.stopPropagation();
 				var _this = $(this),
-					ele = $(_this.data('selector')).get(0);
-				set_selector_parts(ele);
+					selector = decodeURIComponent(_this.data('selector').replace('+', ' ')),
+					ele = $(selector).get(0);
+				$('#selector_string').val(selector);
 				$('#selector_name').val(_this.text());
 				$('#selector_capture').val(_this.data('capture'));
-			})
+				set_selector_parts(ele, false);
+			});
 
 			$('#collect_preview').click(function(event){
 				event.preventDefault();
@@ -352,13 +355,13 @@
 			fix_dropdown_overflow();
 			var selector = get_base_selector();
 			$('.query_check').removeClass('query_check');
+			$('.collect_highlight').removeClass('collect_highlight');
 			var selected;
 			$('#selector_capture').val('');
 			if (selector === ''){
 				$('#selector_count').html("Count: 0");
 				$('#selector_string').val("");
 				$('#selector_text').html("");
-				return;
 			} else {
 				selected = get_full_selector_elements(selector);
 				selected.addClass('query_check');
@@ -379,42 +382,50 @@
 		*/
 		function make_selector_text(element) {
 			var curr, attr, replace_regexp,
-				text = element.outerHTML.replace(/(\s\s+|[\n\t]+)/g, ''),
-				tags = text.match(/<[^\/].+?>/g),
-				text_val = text.match(/>(.*?)</g),
-				text_check = {},
+				html = clean_outerhtml(element).replace(/(\s\s+|[\n\t]+)/g, ''),
+				tags = html.match(/<[^\/].+?>/g),
+				text_val = $(element).text(),
 				properties = [];
 			// find tag attributes
 			if ( tags ) {
 				properties = unique_properties(tags);
 			}
-			text = text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+			html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 			// replace properties with capture spans
 			for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
 				curr = properties[i];
 				attr = curr.slice(0, curr.indexOf('='));
 				replace_regexp = new RegExp(escape_regexp(curr), 'g');
-				text = text.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
+				html = html.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
 			}
 
 			// create capture spans with 'text' targets on all text
-			if ( text_val ) {
-				var regexp_string, text_replace_regexp, replace_string;
-				for ( var t=0, text_len=text_val.length; t<text_len; t++) {
-					// strip preceding/trailing spaces
-					curr = text_val[t].slice(1,-1).replace(/(^\s*|\s*$)/g, '');
-					if ( !text_check[curr] && curr !== '' ) {
-						text_check[curr] = true;
-						regexp_string = '(?:&gt;\\s*)(' + escape_regexp(curr) + ')(?:\\s*&lt;)',
-						text_replace_regexp = new RegExp(regexp_string, 'g');
-						replace_string = wrap_property(curr, 'text', '&gt;', '&lt;');
-						text = text.replace(text_replace_regexp, replace_string);
-					}
-				}
+			if ( text_val !== '' ) {
+				// strip preceding/trailing spaces
+				text_val = text_val.replace(/(^\s*|\s*$)/g, '');
+				var regexp_string = '(?:&gt;\\s*)(' + escape_regexp(text_val) + ')(?:\\s*&lt;)',
+					text_replace_regexp = new RegExp(regexp_string, 'g'),
+					replace_string = wrap_property(text_val, 'text', '&gt;', '&lt;');
+				html = html.replace(text_replace_regexp, replace_string);
 			}
-			return text;
+			return html;
+
+			function clean_outerhtml(ele){
+				if (!ele) {
+					return '';
+				}
+				var copy = ele.cloneNode(true),
+					$copy = $(copy);
+				$copy.removeClass('query_check').removeClass('colllect_highlight');
+				$copy.html( $copy.text() );
+				return copy.outerHTML;
+			}
 
 			function wrap_property(ele, val, before, after){
+				// don't include empty properties
+				if ( ele.indexOf('=""') !== -1 ) {
+					return '';
+				}
 				return (before || '') + '<span class="capture no_select" title="click to capture ' + val +
 					' property" data-capture="' + val + '">' + ele + '</span>' + (after || '');
 			}
@@ -444,16 +455,21 @@
 			}
 		}
 
-		function set_selector_parts(ele){
+		function set_selector_parts(ele, update){
 			var long_selector = '';
 			$('.collect_highlight').removeClass('collect_highlight');
+			if ( !ele ) {
+				return;
+			}
 			// get option, not select
 			if ( ele.tagName === "SELECT" ) {
 				ele = ele.children[0];
 			}
 			long_selector = get_element_selector(ele);
 			$('#selector_parts').html(long_selector);
-			update_interface();
+			if ( update ) {
+				update_interface();
+			}
 		}
 
 
