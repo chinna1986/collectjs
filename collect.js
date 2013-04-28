@@ -93,7 +93,7 @@
 		}
 
 		function add_interface() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" readonly /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" readonly /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
+			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" readonly /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" readonly /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
 			add_interface_events();
@@ -149,7 +149,7 @@
 			});
 
 			// create an object for the current query selector/capture data
-			$('#collect_save').on('click', function(event){
+			$('#collect_save').click(function(event){
 				event.preventDefault();
 				var form = $('#selector_form'),
 					serialized_form = form.serialize(),
@@ -186,7 +186,7 @@
 				$('#selector_capture').val(_this.data('capture'));
 			})
 
-			$('#collect_preview').on('click', function(event){
+			$('#collect_preview').click(function(event){
 				event.preventDefault();
 				var selector = $('#selector_string').val(),
 					eles = get_full_selector_elements(selector),
@@ -203,6 +203,11 @@
 						console.log($(this).prop(attr));
 					});
 				}
+			});
+
+			$('#collect_clear').click(function(event){
+				event.preventDefault();
+				clear_interface();
 			});
 
 			$('#selector_parts')

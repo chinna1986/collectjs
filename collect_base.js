@@ -149,7 +149,7 @@
 			});
 
 			// create an object for the current query selector/capture data
-			$('#collect_save').on('click', function(event){
+			$('#collect_save').click(function(event){
 				event.preventDefault();
 				var form = $('#selector_form'),
 					serialized_form = form.serialize(),
@@ -186,7 +186,7 @@
 				$('#selector_capture').val(_this.data('capture'));
 			})
 
-			$('#collect_preview').on('click', function(event){
+			$('#collect_preview').click(function(event){
 				event.preventDefault();
 				var selector = $('#selector_string').val(),
 					eles = get_full_selector_elements(selector),
@@ -203,6 +203,11 @@
 						console.log($(this).prop(attr));
 					});
 				}
+			});
+
+			$('#collect_clear').click(function(event){
+				event.preventDefault();
+				clear_interface();
 			});
 
 			$('#selector_parts')
