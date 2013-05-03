@@ -189,8 +189,7 @@
 			$('#saved_selectors').on('click', '.saved_selector', function(event){
 				event.stopPropagation();
 				var _this = $(this),
-					selector = decodeURIComponent(_this.data('selector').replace('+', ' ')),
-					ele = $(selector).get(0);
+					selector = decodeURIComponent(_this.data('selector').replace('+', ' '));
 				$('#selector_string').val(selector);
 				$('#selector_name').val(_this.text());
 				$('#selector_capture').val(_this.data('capture'));
@@ -198,7 +197,6 @@
 				$(selector).addClass("query_check");
 				clearClass('active_selector');
 				_this.addClass('active_selector');
-				//set_selector_parts(ele, false);
 			});
 
 			$('#collect_preview').click(function(event){
@@ -364,12 +362,6 @@
 		}
 
 		var update_interface = (function(){
-			var selector_capture = $('#selector_capture'),
-				selector_name = $('#selector_name'),
-				selector_count = $('#selector_count'),
-				selector_string = $('#selector_string'),
-				selector_text = $('#selector_text');
-
 			/*
 			because the interface has a fixed position, anything that overflows has to be hidden,
 			so modify which direction the dropdown goes to prevent it from being cut off
@@ -389,24 +381,24 @@
 			}
 
 			return function(){
+				var selector = get_base_selector(),
+					selected;
 				fix_dropdown_overflow();
-				var selector = get_base_selector();
 				clearClass('query_check');
 				clearClass('collect_highlight');
 				clearClass('active_selector');
-				var selected;
-				selector_capture.val('');
-				selector_name.val('');
+				$('#selector_capture').val('');
+				$('#selector_name').val('');
 				if (selector === ''){
-					selector_count.html("Count: 0");
-					selector_string.val("");
-					selector_text.html("");
+					$('#selector_count').html("Count: 0");
+					$('#selector_string').val("");
+					$('#selector_text').html("");
 				} else {
 					selected = get_full_selector_elements(selector);
 					selected.addClass('query_check');
-					selector_count.html("Count: " + selected.length);
-					selector_string.val(selector);
-					selector_text.html(make_selector_text(selected[0]) || "no text");
+					$('#selector_count').html("Count: " + selected.length);
+					$('#selector_string').val(selector);
+					$('#selector_text').html(make_selector_text(selected[0]) || "no text");
 				}
 			};
 		})();
@@ -419,6 +411,7 @@
 			$('#selector_form input').val('');
 			$('#selector_parts, #selector_count, #selector_text').html('');
 			clearClass('query_check');
+			clearClass('active_selector');
 		}
 
 		/*
