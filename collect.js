@@ -57,7 +57,7 @@
 				if ( this === null ) {
 					return;
 				}
-				set_selector_parts(this, true);
+				set_selector_parts(this);
 			}
 
 			return event_obj;
@@ -87,13 +87,13 @@
 			var s = document.createElement('style');
 			s.setAttribute('id','collect-style');
 			s.innerText = ".collect_highlight{" + Collect.highlight_css + "}" +
-				".query_check {" + Collect.check_css + "}" + "/*#collect_interface shouldn\'t be necessary for most of these rules, but they are includedto prevent possible selector collisions on sites the script is run on*/#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}.saved_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;background: #efefef;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}/* non-interface css */.collect_highlight{border: 1px solid blue !important;} /* breaks formatting, but shows border on table rows */ tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: yellow !important; border: 1px solid yellow; }";
+				".query_check, .query_check * {" + Collect.check_css + "}" + "/*#collect_interface shouldn\'t be necessary for most of these rules, but they are includedto prevent possible selector collisions on sites the script is run on*/#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}.saved_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;background: #efefef;}.saved_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}/* non-interface css */.collect_highlight{border: 1px solid blue !important;} /* breaks formatting, but shows border on table rows */ tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: yellow !important; border: 1px solid yellow; }";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
 
 		function add_interface() {
-			var interface_html = '<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>';
+			var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
 			add_interface_events();
@@ -111,8 +111,8 @@
 				if ( events_on ) {
 					Collect.events.off();
 					_this.text('On');
-					$('.query_check').removeClass('query_check');
-					$('.collect_highlight').removeClass('collect_highlight');
+					clearClass('query_check');
+					clearClass('collect_highlight');
 				} else {
 					Collect.events.on();
 					_this.text('Off');
@@ -124,8 +124,8 @@
 			$('#close_selector').click(function(event){
 				event.stopPropagation();
 				Collect.events.off();
-				$('.query_check').removeClass('query_check');
-				$('.collect_highlight').removeClass('collect_highlight');
+				clearClass('query_check');
+				clearClass('collect_highlight');
 				$('#collect_interface, #options_interface, #collect-style, #options_background').remove();
 			});
 
@@ -166,8 +166,16 @@
 					}
 					selector_object[name] = input_data;
 				}
-				add_saved_selector(selector_object);
-				Collect.rules.push(selector_object);
+				if ( $('.active_selector').length ){
+					$('.active_selector')
+						.data('selector', selector_object.selector)
+						.data('capture', selector_object.capture)
+						.text(selector_object.name)
+						.removeClass('active_selector');
+				} else {
+					add_saved_selector(selector_object);
+					Collect.rules.push(selector_object);
+				}
 				clear_interface();
 			});
 
@@ -186,7 +194,11 @@
 				$('#selector_string').val(selector);
 				$('#selector_name').val(_this.text());
 				$('#selector_capture').val(_this.data('capture'));
-				set_selector_parts(ele, false);
+				clearClass("query_check");
+				$(selector).addClass("query_check");
+				clearClass('active_selector');
+				_this.addClass('active_selector');
+				//set_selector_parts(ele, false);
 			});
 
 			$('#collect_preview').click(function(event){
@@ -248,11 +260,11 @@
 					}
 					// + 1 to include the hovered selector
 					selector = get_base_selector(index + 1);
-					$('.collect_highlight').removeClass('collect_highlight');
+					clearClass('collect_highlight');
 					get_full_selector_elements(selector).addClass('collect_highlight');
 				})
 				.on('mouseleave', '.selector_group', function(){
-					$('.collect_highlight').removeClass('collect_highlight');
+					clearClass('collect_highlight');
 				})
 				.on('click', '.deltog', function(){
 					$(this).parents('.selector_group').remove();
@@ -351,30 +363,62 @@
 			return $(selector);
 		}
 
-		function update_interface(){
-			fix_dropdown_overflow();
-			var selector = get_base_selector();
-			$('.query_check').removeClass('query_check');
-			$('.collect_highlight').removeClass('collect_highlight');
-			var selected;
-			$('#selector_capture').val('');
-			if (selector === ''){
-				$('#selector_count').html("Count: 0");
-				$('#selector_string').val("");
-				$('#selector_text').html("");
-			} else {
-				selected = get_full_selector_elements(selector);
-				selected.addClass('query_check');
-				$('#selector_count').html("Count: " + selected.length);
-				$('#selector_string').val(selector);
-				$('#selector_text').html(make_selector_text(selected[0]) || "no text");
+		var update_interface = (function(){
+			var selector_capture = $('#selector_capture'),
+				selector_name = $('#selector_name'),
+				selector_count = $('#selector_count'),
+				selector_string = $('#selector_string'),
+				selector_text = $('#selector_text');
+
+			/*
+			because the interface has a fixed position, anything that overflows has to be hidden,
+			so modify which direction the dropdown goes to prevent it from being cut off
+			*/
+			function fix_dropdown_overflow(){
+				var interface_left = $('#collect_interface').offset().left,
+					groups = $('.group_options');
+				groups.each(function(){
+					var _this = $(this),
+						group_left = _this.offset().left;
+					if ( group_left - interface_left < 80 ) {
+						$('.group_dropdown', _this).css({'left':'0', 'right':''});
+					} else {
+						$('.group_dropdown', _this).css({'right':'0', 'left':''});
+					}
+				});
 			}
+
+			return function(){
+				fix_dropdown_overflow();
+				var selector = get_base_selector();
+				clearClass('query_check');
+				clearClass('collect_highlight');
+				clearClass('active_selector');
+				var selected;
+				selector_capture.val('');
+				selector_name.val('');
+				if (selector === ''){
+					selector_count.html("Count: 0");
+					selector_string.val("");
+					selector_text.html("");
+				} else {
+					selected = get_full_selector_elements(selector);
+					selected.addClass('query_check');
+					selector_count.html("Count: " + selected.length);
+					selector_string.val(selector);
+					selector_text.html(make_selector_text(selected[0]) || "no text");
+				}
+			};
+		})();
+
+		function clearClass(name){
+			$('.'+name).removeClass(name);
 		}
 
 		function clear_interface(){
 			$('#selector_form input').val('');
 			$('#selector_parts, #selector_count, #selector_text').html('');
-			$('.query_check').removeClass('query_check');
+			clearClass('query_check');
 		}
 
 		/*
@@ -402,6 +446,9 @@
 
 			// create capture spans with 'text' targets on all text
 			if ( text_val !== '' ) {
+				if ( text_val.length > 100 ){
+					text_val = text_val.slice(0, 25) + "..." + text_val.slice(-25);
+				}
 				// strip preceding/trailing spaces
 				text_val = text_val.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 				text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
@@ -417,9 +464,13 @@
 					return '';
 				}
 				var copy = ele.cloneNode(true),
-					$copy = $(copy);
-				$copy.removeClass('query_check').removeClass('colllect_highlight');
-				$copy.html( $copy.text() );
+					$copy = $(copy),
+					text = $copy.text();
+				$copy.removeClass('query_check').removeClass('collect_highlight');
+				if ( text.length > 100 ){
+					text = text.slice(0, 25) + "..." + text.slice(-25);
+				}
+				$copy.html(text);
 				return copy.outerHTML;
 			}
 
@@ -457,9 +508,9 @@
 			}
 		}
 
-		function set_selector_parts(ele, update){
+		function set_selector_parts(ele){
 			var long_selector = '';
-			$('.collect_highlight').removeClass('collect_highlight');
+			clearClass('collect_highlight');
 			if ( !ele ) {
 				return;
 			}
@@ -469,9 +520,7 @@
 			}
 			long_selector = get_element_selector(ele);
 			$('#selector_parts').html(long_selector);
-			if ( update ) {
-				update_interface();
-			}
+			update_interface();
 		}
 
 
@@ -502,23 +551,6 @@
 				ele = ele.parentElement;
 			}
 			return selector;
-		}
-
-		/*
-		because the interface has a fixed position, anything that overflows has to be hidden.
-		*/
-		function fix_dropdown_overflow(){
-			var interface_left = $('#collect_interface').offset().left,
-				groups = $('.group_options');
-			groups.each(function(){
-				var _this = $(this),
-					group_left = _this.offset().left;
-				if ( group_left - interface_left < 80 ) {
-					$('.group_dropdown', _this).css({'left':'0', 'right':''});
-				} else {
-					$('.group_dropdown', _this).css({'right':'0', 'left':''});
-				}
-			});
 		}
 
 		/********************

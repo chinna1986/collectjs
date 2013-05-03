@@ -181,6 +181,12 @@ to prevent possible selector collisions on sites the script is run on
 	background: #efefef;
 }
 
+.saved_selector.active_selector{
+	border-color: #000;
+	border-width: 2px;
+	font-weight: bold;
+}
+
 /* options modal */
 #options_interface{
 	display: none;

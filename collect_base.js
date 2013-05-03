@@ -57,7 +57,7 @@
 				if ( this === null ) {
 					return;
 				}
-				set_selector_parts(this, true);
+				set_selector_parts(this);
 			}
 
 			return event_obj;
@@ -87,13 +87,13 @@
 			var s = document.createElement('style');
 			s.setAttribute('id','collect-style');
 			s.innerText = ".collect_highlight{" + Collect.highlight_css + "}" +
-				".query_check {" + Collect.check_css + "}" + "{{collect.css}}";
+				".query_check, .query_check * {" + Collect.check_css + "}" + "{{collect.css}}";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
 
 		function add_interface() {
-			var interface_html = '{{collect.html}}';
+			var interface_html = "{{collect.html}}";
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
 			add_interface_events();
@@ -111,8 +111,8 @@
 				if ( events_on ) {
 					Collect.events.off();
 					_this.text('On');
-					$('.query_check').removeClass('query_check');
-					$('.collect_highlight').removeClass('collect_highlight');
+					clearClass('query_check');
+					clearClass('collect_highlight');
 				} else {
 					Collect.events.on();
 					_this.text('Off');
@@ -124,8 +124,8 @@
 			$('#close_selector').click(function(event){
 				event.stopPropagation();
 				Collect.events.off();
-				$('.query_check').removeClass('query_check');
-				$('.collect_highlight').removeClass('collect_highlight');
+				clearClass('query_check');
+				clearClass('collect_highlight');
 				$('#collect_interface, #options_interface, #collect-style, #options_background').remove();
 			});
 
@@ -166,8 +166,16 @@
 					}
 					selector_object[name] = input_data;
 				}
-				add_saved_selector(selector_object);
-				Collect.rules.push(selector_object);
+				if ( $('.active_selector').length ){
+					$('.active_selector')
+						.data('selector', selector_object.selector)
+						.data('capture', selector_object.capture)
+						.text(selector_object.name)
+						.removeClass('active_selector');
+				} else {
+					add_saved_selector(selector_object);
+					Collect.rules.push(selector_object);
+				}
 				clear_interface();
 			});
 
@@ -186,7 +194,11 @@
 				$('#selector_string').val(selector);
 				$('#selector_name').val(_this.text());
 				$('#selector_capture').val(_this.data('capture'));
-				set_selector_parts(ele, false);
+				clearClass("query_check");
+				$(selector).addClass("query_check");
+				clearClass('active_selector');
+				_this.addClass('active_selector');
+				//set_selector_parts(ele, false);
 			});
 
 			$('#collect_preview').click(function(event){
@@ -248,11 +260,11 @@
 					}
 					// + 1 to include the hovered selector
 					selector = get_base_selector(index + 1);
-					$('.collect_highlight').removeClass('collect_highlight');
+					clearClass('collect_highlight');
 					get_full_selector_elements(selector).addClass('collect_highlight');
 				})
 				.on('mouseleave', '.selector_group', function(){
-					$('.collect_highlight').removeClass('collect_highlight');
+					clearClass('collect_highlight');
 				})
 				.on('click', '.deltog', function(){
 					$(this).parents('.selector_group').remove();
@@ -351,30 +363,62 @@
 			return $(selector);
 		}
 
-		function update_interface(){
-			fix_dropdown_overflow();
-			var selector = get_base_selector();
-			$('.query_check').removeClass('query_check');
-			$('.collect_highlight').removeClass('collect_highlight');
-			var selected;
-			$('#selector_capture').val('');
-			if (selector === ''){
-				$('#selector_count').html("Count: 0");
-				$('#selector_string').val("");
-				$('#selector_text').html("");
-			} else {
-				selected = get_full_selector_elements(selector);
-				selected.addClass('query_check');
-				$('#selector_count').html("Count: " + selected.length);
-				$('#selector_string').val(selector);
-				$('#selector_text').html(make_selector_text(selected[0]) || "no text");
+		var update_interface = (function(){
+			var selector_capture = $('#selector_capture'),
+				selector_name = $('#selector_name'),
+				selector_count = $('#selector_count'),
+				selector_string = $('#selector_string'),
+				selector_text = $('#selector_text');
+
+			/*
+			because the interface has a fixed position, anything that overflows has to be hidden,
+			so modify which direction the dropdown goes to prevent it from being cut off
+			*/
+			function fix_dropdown_overflow(){
+				var interface_left = $('#collect_interface').offset().left,
+					groups = $('.group_options');
+				groups.each(function(){
+					var _this = $(this),
+						group_left = _this.offset().left;
+					if ( group_left - interface_left < 80 ) {
+						$('.group_dropdown', _this).css({'left':'0', 'right':''});
+					} else {
+						$('.group_dropdown', _this).css({'right':'0', 'left':''});
+					}
+				});
 			}
+
+			return function(){
+				fix_dropdown_overflow();
+				var selector = get_base_selector();
+				clearClass('query_check');
+				clearClass('collect_highlight');
+				clearClass('active_selector');
+				var selected;
+				selector_capture.val('');
+				selector_name.val('');
+				if (selector === ''){
+					selector_count.html("Count: 0");
+					selector_string.val("");
+					selector_text.html("");
+				} else {
+					selected = get_full_selector_elements(selector);
+					selected.addClass('query_check');
+					selector_count.html("Count: " + selected.length);
+					selector_string.val(selector);
+					selector_text.html(make_selector_text(selected[0]) || "no text");
+				}
+			};
+		})();
+
+		function clearClass(name){
+			$('.'+name).removeClass(name);
 		}
 
 		function clear_interface(){
 			$('#selector_form input').val('');
 			$('#selector_parts, #selector_count, #selector_text').html('');
-			$('.query_check').removeClass('query_check');
+			clearClass('query_check');
 		}
 
 		/*
@@ -402,6 +446,9 @@
 
 			// create capture spans with 'text' targets on all text
 			if ( text_val !== '' ) {
+				if ( text_val.length > 100 ){
+					text_val = text_val.slice(0, 25) + "..." + text_val.slice(-25);
+				}
 				// strip preceding/trailing spaces
 				text_val = text_val.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 				text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
@@ -417,9 +464,13 @@
 					return '';
 				}
 				var copy = ele.cloneNode(true),
-					$copy = $(copy);
-				$copy.removeClass('query_check').removeClass('colllect_highlight');
-				$copy.html( $copy.text() );
+					$copy = $(copy),
+					text = $copy.text();
+				$copy.removeClass('query_check').removeClass('collect_highlight');
+				if ( text.length > 100 ){
+					text = text.slice(0, 25) + "..." + text.slice(-25);
+				}
+				$copy.html(text);
 				return copy.outerHTML;
 			}
 
@@ -457,9 +508,9 @@
 			}
 		}
 
-		function set_selector_parts(ele, update){
+		function set_selector_parts(ele){
 			var long_selector = '';
-			$('.collect_highlight').removeClass('collect_highlight');
+			clearClass('collect_highlight');
 			if ( !ele ) {
 				return;
 			}
@@ -469,9 +520,7 @@
 			}
 			long_selector = get_element_selector(ele);
 			$('#selector_parts').html(long_selector);
-			if ( update ) {
-				update_interface();
-			}
+			update_interface();
 		}
 
 
@@ -502,23 +551,6 @@
 				ele = ele.parentElement;
 			}
 			return selector;
-		}
-
-		/*
-		because the interface has a fixed position, anything that overflows has to be hidden.
-		*/
-		function fix_dropdown_overflow(){
-			var interface_left = $('#collect_interface').offset().left,
-				groups = $('.group_options');
-			groups.each(function(){
-				var _this = $(this),
-					group_left = _this.offset().left;
-				if ( group_left - interface_left < 80 ) {
-					$('.group_dropdown', _this).css({'left':'0', 'right':''});
-				} else {
-					$('.group_dropdown', _this).css({'right':'0', 'left':''});
-				}
-			});
 		}
 
 		/********************
