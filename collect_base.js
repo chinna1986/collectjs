@@ -384,12 +384,13 @@
 			var curr, attr, replace_regexp,
 				html = clean_outerhtml(element).replace(/(\s\s+|[\n\t]+)/g, ''),
 				tags = html.match(/<[^\/].+?>/g),
-				text_val = $(element).text(),
+				text_val = $(element).text().replace(/(\s\s+|[\n\t]+)/g, ''),
 				properties = [];
 			// find tag attributes
 			if ( tags ) {
 				properties = unique_properties(tags);
 			}
+
 			html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 			// replace properties with capture spans
 			for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
@@ -402,7 +403,8 @@
 			// create capture spans with 'text' targets on all text
 			if ( text_val !== '' ) {
 				// strip preceding/trailing spaces
-				text_val = text_val.replace(/(^\s*|\s*$)/g, '');
+				text_val = text_val.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+				text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
 				var regexp_string = '(?:&gt;\\s*)(' + escape_regexp(text_val) + ')(?:\\s*&lt;)',
 					text_replace_regexp = new RegExp(regexp_string, 'g'),
 					replace_string = wrap_property(text_val, 'text', '&gt;', '&lt;');

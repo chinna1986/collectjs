@@ -214,7 +214,7 @@ to prevent possible selector collisions on sites the script is run on
  	display: table;
  }
 
-.query_check { 
+.query_check, .query_check *{ 
 	background: yellow !important; 
 	border: 1px solid yellow; 
 }
