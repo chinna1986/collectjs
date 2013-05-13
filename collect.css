@@ -202,10 +202,10 @@ to prevent possible selector collisions on sites the script is run on
 }
 
 .saved_selector{
-	background: #efefef;
+	background: #B0E69E;
 }
 .desired_selector{
-	background: #ccc;
+	background: #E69E9E;
 }
 
 /* options modal */

@@ -483,7 +483,13 @@
 				curr = properties[i];
 				attr = curr.slice(0, curr.indexOf('='));
 				replace_regexp = new RegExp(escape_regexp(curr), 'g');
-				html = html.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));
+				// don't include on___ properties
+				console.log(attr);
+				if ( attr.indexOf('on') === 0 ) {
+					html = html.replace(replace_regexp, '');	
+				} else {
+					html = html.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));	
+				}
 			}
 
 			// create capture spans with 'text' targets on all text
