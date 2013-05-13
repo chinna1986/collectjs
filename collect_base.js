@@ -70,27 +70,9 @@
 
 		Collect.load = function(json_url){
 			$.ajax({
-				dataType: "json",
+				dataType: "jsonp",
 				url: json_url,
-				success: function( data ) {
-					// loads a json object, array of desired properties to collect
-					var selectors = "",
-						curr;
-					if ( data.names) {
-						for ( var i=0, len=data.names.length; i < len; i++) {
-							curr = data.names[i];
-							selectors += '<span class="collect_group"><span class="desired_selector"'
-							if (curr.selector) {
-								selectors += ' data-selector="' + curr.selector + '"';
-							}
-							if (curr.capture) {
-								selectors += ' data-capture="' + curr.capture + '"';
-							}
-							selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
-						}
-						$('#desired_selectors').html(selectors);
-					}
-				}
+				jsonpCallback: 'set_desired_selectors'
 			});
 		};
 
@@ -195,6 +177,7 @@
 						active
 							.removeClass('desired_selector')
 							.addClass('saved_selector')
+							.parents('.collect_group')
 							.appendTo('#saved_selectors');
 					}
 				} else {
@@ -244,9 +227,11 @@
 				$('#selector_name').val(name);
 				$('#selector_string').val(selector);
 				$('#selector_capture').val(capture);
-				set_selector_parts_from_selector(selector);
-				clearClass("query_check");
-				get_full_selector_elements(selector).addClass("query_check");
+				if ( selector !== '' ){
+					set_selector_parts_from_selector(selector);
+					clearClass("query_check");
+					get_full_selector_elements(selector).addClass("query_check");
+				}
 				clearClass('active_selector');
 				_this.addClass('active_selector');
 			}
@@ -484,7 +469,6 @@
 				attr = curr.slice(0, curr.indexOf('='));
 				replace_regexp = new RegExp(escape_regexp(curr), 'g');
 				// don't include on___ properties
-				console.log(attr);
 				if ( attr.indexOf('on') === 0 ) {
 					html = html.replace(replace_regexp, '');	
 				} else {
@@ -701,6 +685,7 @@
 				var jQuery191 = jQuery.noConflict();
 				collect = make_collect(jQuery191);
 				collect.setup();
+				collect.load('https://s3.amazonaws.com/collectjs/test.json');
 			}
 		};
 
@@ -708,5 +693,24 @@
 	} else {
 		collect = make_collect(jQuery);
 		collect.setup();
+		collect.load('https://s3.amazonaws.com/collectjs/test.json');
 	}
 })();
+
+window.set_desired_selectors = function(data){
+	// loads a json object, array of desired properties to collect
+	console.log('setting selectors');
+	console.log(data);
+	var selectors = "",
+		curr;
+	if ( data.names) {
+		for ( var i=0, len=data.names.length; i < len; i++) {
+			curr = data.names[i];
+			selectors += '<span class="collect_group"><span class="desired_selector"'
+			selectors += ' data-selector="' + (curr.selector || '') + '"';
+			selectors += ' data-capture="' + (curr.capture || '') + '"';
+			selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
+		}
+		document.getElementById('desired_selectors').innerHTML = selectors;
+	}
+}

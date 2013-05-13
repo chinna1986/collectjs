@@ -181,6 +181,10 @@ to prevent possible selector collisions on sites the script is run on
 	margin-right: 5px;
 }
 
+#saved_selectors, #desired_selectors{
+	float: left;
+}
+
 .saved_selector, .desired_selector{
 	padding: 2px 5px;
 	border: 1px solid #777;

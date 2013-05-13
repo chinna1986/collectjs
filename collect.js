@@ -70,27 +70,9 @@
 
 		Collect.load = function(json_url){
 			$.ajax({
-				dataType: "json",
+				dataType: "jsonp",
 				url: json_url,
-				success: function( data ) {
-					// loads a json object, array of desired properties to collect
-					var selectors = "",
-						curr;
-					if ( data.names) {
-						for ( var i=0, len=data.names.length; i < len; i++) {
-							curr = data.names[i];
-							selectors += '<span class="collect_group"><span class="desired_selector"'
-							if (curr.selector) {
-								selectors += ' data-selector="' + curr.selector + '"';
-							}
-							if (curr.capture) {
-								selectors += ' data-capture="' + curr.capture + '"';
-							}
-							selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
-						}
-						$('#desired_selectors').html(selectors);
-					}
-				}
+				jsonpCallback: 'set_desired_selectors'
 			});
 		};
 
@@ -106,7 +88,7 @@
 			var s = document.createElement('style');
 			s.setAttribute('id','collect-style');
 			s.innerText = ".collect_highlight{" + Collect.highlight_css + "}" +
-				".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #B0E69E;}.desired_selector{background: #E69E9E;}#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: yellow !important; border: 1px solid yellow; }";
+				".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}#saved_selectors, #desired_selectors{float: left;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #B0E69E;}.desired_selector{background: #E69E9E;}#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: yellow !important; border: 1px solid yellow; }";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
@@ -195,6 +177,7 @@
 						active
 							.removeClass('desired_selector')
 							.addClass('saved_selector')
+							.parents('.collect_group')
 							.appendTo('#saved_selectors');
 					}
 				} else {
@@ -244,9 +227,11 @@
 				$('#selector_name').val(name);
 				$('#selector_string').val(selector);
 				$('#selector_capture').val(capture);
-				set_selector_parts_from_selector(selector);
-				clearClass("query_check");
-				get_full_selector_elements(selector).addClass("query_check");
+				if ( selector !== '' ){
+					set_selector_parts_from_selector(selector);
+					clearClass("query_check");
+					get_full_selector_elements(selector).addClass("query_check");
+				}
 				clearClass('active_selector');
 				_this.addClass('active_selector');
 			}
@@ -484,7 +469,6 @@
 				attr = curr.slice(0, curr.indexOf('='));
 				replace_regexp = new RegExp(escape_regexp(curr), 'g');
 				// don't include on___ properties
-				console.log(attr);
 				if ( attr.indexOf('on') === 0 ) {
 					html = html.replace(replace_regexp, '');	
 				} else {
@@ -701,6 +685,7 @@
 				var jQuery191 = jQuery.noConflict();
 				collect = make_collect(jQuery191);
 				collect.setup();
+				collect.load('https://s3.amazonaws.com/collectjs/test.json');
 			}
 		};
 
@@ -708,5 +693,24 @@
 	} else {
 		collect = make_collect(jQuery);
 		collect.setup();
+		collect.load('https://s3.amazonaws.com/collectjs/test.json');
 	}
 })();
+
+window.set_desired_selectors = function(data){
+	// loads a json object, array of desired properties to collect
+	console.log('setting selectors');
+	console.log(data);
+	var selectors = "",
+		curr;
+	if ( data.names) {
+		for ( var i=0, len=data.names.length; i < len; i++) {
+			curr = data.names[i];
+			selectors += '<span class="collect_group"><span class="desired_selector"'
+			selectors += ' data-selector="' + (curr.selector || '') + '"';
+			selectors += ' data-capture="' + (curr.capture || '') + '"';
+			selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
+		}
+		document.getElementById('desired_selectors').innerHTML = selectors;
+	}
+}

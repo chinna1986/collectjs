@@ -1,0 +1,1 @@
+set_desired_selectors({"names": [{"name": "name"}, {"name":"price"}, {"name":"sizes"}, {"name":"colors"}]})
