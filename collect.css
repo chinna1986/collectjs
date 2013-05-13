@@ -127,7 +127,6 @@ to prevent possible selector collisions on sites the script is run on
 }
 
 #collect_interface .off{
-	text-decoration: line-through;
 	opacity: 0.4;
 }
 
@@ -174,17 +173,39 @@ to prevent possible selector collisions on sites the script is run on
 	line-height: 2em;
 }
 
-.saved_selector{
+#collect_selectors{
+	margin-top: 10px;
+}
+
+.collect_group{
+	margin-right: 5px;
+}
+
+.saved_selector, .desired_selector{
 	padding: 2px 5px;
 	border: 1px solid #777;
 	cursor: pointer;
+}
+.collect_group .deltog{
+	cursor: pointer;
+	border-width: 1px 1px 1px 0;
+	border-style: solid;
+	border-color: #777;
 	background: #efefef;
+	padding: 2px;
 }
 
-.saved_selector.active_selector{
+.saved_selector.active_selector, .desired_selector.active_selector{
 	border-color: #000;
 	border-width: 2px;
 	font-weight: bold;
+}
+
+.saved_selector{
+	background: #efefef;
+}
+.desired_selector{
+	background: #ccc;
 }
 
 /* options modal */

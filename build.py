@@ -21,6 +21,7 @@ def insert_code(filename):
 	# get rid of whitespace characters except for spaces to fit on one line
 	code = code.replace("'", "\\'").replace('"', '\\"')
 	code = re.sub(r'[\t\n\r\f\v]', '', code)
+	code = re.sub(r'\/\*.+?\*\/', '', code)
 	return code
 
 def upload_to_s3():

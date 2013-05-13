@@ -42,8 +42,7 @@
 				};
 
 			function select(event){
-				event.stopPropagation();
-				$(this).addClass('collect_highlight');
+				event.stopPropagation();$(this).addClass('collect_highlight');
 			}
 
 			function deselect(event){
@@ -57,23 +56,43 @@
 				if ( this === null ) {
 					return;
 				}
-				set_selector_parts(this);
+				if ( $('.active_selector').length ){
+					set_selector_parts(this);
+				} else {
+					clear_interface();
+					set_selector_parts(this);
+				}
+				
 			}
 
 			return event_obj;
 		})();
 
-		/*
-		not yet implemented
 		Collect.load = function(json_url){
 			$.ajax({
 				dataType: "json",
 				url: json_url,
 				success: function( data ) {
-			}
+					// loads a json object, array of desired properties to collect
+					var selectors = "",
+						curr;
+					if ( data.names) {
+						for ( var i=0, len=data.names.length; i < len; i++) {
+							curr = data.names[i];
+							selectors += '<span class="collect_group"><span class="desired_selector"'
+							if (curr.selector) {
+								selectors += ' data-selector="' + curr.selector + '"';
+							}
+							if (curr.capture) {
+								selectors += ' data-capture="' + curr.capture + '"';
+							}
+							selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
+						}
+						$('#desired_selectors').html(selectors);
+					}
+				}
 			});
 		};
-		*/
 
 		/***************
 		END COLLECT OBJECT
@@ -87,13 +106,13 @@
 			var s = document.createElement('style');
 			s.setAttribute('id','collect-style');
 			s.innerText = ".collect_highlight{" + Collect.highlight_css + "}" +
-				".query_check, .query_check * {" + Collect.check_css + "}" + "/*#collect_interface shouldn\'t be necessary for most of these rules, but they are includedto prevent possible selector collisions on sites the script is run on*/#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{text-decoration: line-through;opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}.saved_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;background: #efefef;}.saved_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}/* options modal */#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}/* non-interface css */.collect_highlight{border: 1px solid blue !important;} /* breaks formatting, but shows border on table rows */ tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: yellow !important; border: 1px solid yellow; }";
+				".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#collect_interface #form_inputs {margin: 15px 0;}#collect_interface #control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}#collect_interface.attach_top #control_buttons button{border-top: 0;}#collect_interface button {margin-right: 10px;line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #efefef;}.desired_selector{background: #ccc;}#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background {top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;display: none;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: yellow !important; border: 1px solid yellow; }";
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
 
 		function add_interface() {
-			var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><section id=\"saved_selectors\"></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
+			var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview</button><button id=\"collect_clear\">Clear</button></form></section><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
 			add_interface_events();
@@ -154,7 +173,8 @@
 				var form = $('#selector_form'),
 					serialized_form = form.serialize(),
 					inputs = serialized_form.split('&'),
-					selector_object = {};
+					selector_object = {},
+					active = $('.active_selector');
 				for ( var i=0, len=inputs.length; i<len; i++ ) {
 					var curr = inputs[i],
 						equal_pos = curr.indexOf('='),
@@ -166,12 +186,18 @@
 					}
 					selector_object[name] = input_data;
 				}
-				if ( $('.active_selector').length ){
-					$('.active_selector')
+				if ( active.length ){
+					active
 						.data('selector', selector_object.selector)
 						.data('capture', selector_object.capture)
 						.text(selector_object.name)
 						.removeClass('active_selector');
+					if ( active.parents('#desired_selectors').length ) {
+						active
+							.removeClass('desired_selector')
+							.addClass('saved_selector')
+							.appendTo('#saved_selectors');
+					}
 				} else {
 					add_saved_selector(selector_object);
 					Collect.rules.push(selector_object);
@@ -181,23 +207,46 @@
 
 			function add_saved_selector(obj){
 				var saved = $('#saved_selectors');
-				saved.append('<span class="saved_selector"' + 
+				saved.append('<span class="collect_group"><span class="saved_selector"' + 
 					'data-selector="' + obj.selector + '" data-capture="' + obj.capture + '">' +
-					obj.name + '</span>');
+					obj.name + '</span><span class="deltog">x</span></span>');
 			}
+
+			$('#saved_selectors, #desired_selectors').on('click', '.deltog', function(event){
+				event.stopPropagation();
+				$(this).parents('.collect_group').remove();
+			})
 
 			$('#saved_selectors').on('click', '.saved_selector', function(event){
 				event.stopPropagation();
-				var _this = $(this),
-					selector = decodeURIComponent(_this.data('selector').replace('+', ' '));
+				var _this = $(this);
+				if ( _this.hasClass('active_selector') ) {
+					clear_interface();
+				} else {
+					load_selector_group(this);
+				}
+			});
+
+			$('#desired_selectors').on('click', '.desired_selector', function(event){
+				event.stopPropagation();
+				load_selector_group(this);
+			});
+
+			function load_selector_group(ele){
+				var _this = $(ele),
+					selector = decodeURIComponent(_this.data('selector').replace(/\+/g, ' ')),
+					name = _this.text(),
+					capture = _this.data('capture');
+				$('#selector_name').val(name);
 				$('#selector_string').val(selector);
-				$('#selector_name').val(_this.text());
-				$('#selector_capture').val(_this.data('capture'));
+				$('#selector_capture').val(capture);
+				selector_parts_from_selector(selector);
 				clearClass("query_check");
-				$(selector).addClass("query_check");
+				get_full_selector_elements(selector).addClass("query_check");
 				clearClass('active_selector');
 				_this.addClass('active_selector');
-			});
+			}
+
 
 			$('#collect_preview').click(function(event){
 				event.preventDefault();
@@ -386,9 +435,6 @@
 				fix_dropdown_overflow();
 				clearClass('query_check');
 				clearClass('collect_highlight');
-				clearClass('active_selector');
-				$('#selector_capture').val('');
-				$('#selector_name').val('');
 				if (selector === ''){
 					$('#selector_count').html("Count: 0");
 					$('#selector_string').val("");
@@ -499,6 +545,21 @@
 				}
 				return properties;
 			}
+		}
+
+		function selector_parts_from_selector(selector){
+			var groups = selector.split(' '),
+				curr,
+				selector_groups = '';
+			for ( var i=0, len=groups.length; i < len; i++ ) {
+				curr = $(groups[i]);
+				if ( curr.length ) {
+					var s = new Selector(curr.get(0));
+					selector_groups += s.toHTML(true) + ' ';
+				}
+			}
+			$(selector).addClass('query_check');
+			$('#selector_parts').html(selector_groups);
 		}
 
 		function set_selector_parts(ele){

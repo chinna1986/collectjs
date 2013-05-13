@@ -42,8 +42,7 @@
 				};
 
 			function select(event){
-				event.stopPropagation();
-				$(this).addClass('collect_highlight');
+				event.stopPropagation();$(this).addClass('collect_highlight');
 			}
 
 			function deselect(event){
@@ -57,23 +56,43 @@
 				if ( this === null ) {
 					return;
 				}
-				set_selector_parts(this);
+				if ( $('.active_selector').length ){
+					set_selector_parts(this);
+				} else {
+					clear_interface();
+					set_selector_parts(this);
+				}
+				
 			}
 
 			return event_obj;
 		})();
 
-		/*
-		not yet implemented
 		Collect.load = function(json_url){
 			$.ajax({
 				dataType: "json",
 				url: json_url,
 				success: function( data ) {
-			}
+					// loads a json object, array of desired properties to collect
+					var selectors = "",
+						curr;
+					if ( data.names) {
+						for ( var i=0, len=data.names.length; i < len; i++) {
+							curr = data.names[i];
+							selectors += '<span class="collect_group"><span class="desired_selector"'
+							if (curr.selector) {
+								selectors += ' data-selector="' + curr.selector + '"';
+							}
+							if (curr.capture) {
+								selectors += ' data-capture="' + curr.capture + '"';
+							}
+							selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
+						}
+						$('#desired_selectors').html(selectors);
+					}
+				}
 			});
 		};
-		*/
 
 		/***************
 		END COLLECT OBJECT
@@ -154,7 +173,8 @@
 				var form = $('#selector_form'),
 					serialized_form = form.serialize(),
 					inputs = serialized_form.split('&'),
-					selector_object = {};
+					selector_object = {},
+					active = $('.active_selector');
 				for ( var i=0, len=inputs.length; i<len; i++ ) {
 					var curr = inputs[i],
 						equal_pos = curr.indexOf('='),
@@ -166,12 +186,18 @@
 					}
 					selector_object[name] = input_data;
 				}
-				if ( $('.active_selector').length ){
-					$('.active_selector')
+				if ( active.length ){
+					active
 						.data('selector', selector_object.selector)
 						.data('capture', selector_object.capture)
 						.text(selector_object.name)
 						.removeClass('active_selector');
+					if ( active.parents('#desired_selectors').length ) {
+						active
+							.removeClass('desired_selector')
+							.addClass('saved_selector')
+							.appendTo('#saved_selectors');
+					}
 				} else {
 					add_saved_selector(selector_object);
 					Collect.rules.push(selector_object);
@@ -181,23 +207,46 @@
 
 			function add_saved_selector(obj){
 				var saved = $('#saved_selectors');
-				saved.append('<span class="saved_selector"' + 
+				saved.append('<span class="collect_group"><span class="saved_selector"' + 
 					'data-selector="' + obj.selector + '" data-capture="' + obj.capture + '">' +
-					obj.name + '</span>');
+					obj.name + '</span><span class="deltog">x</span></span>');
 			}
+
+			$('#saved_selectors, #desired_selectors').on('click', '.deltog', function(event){
+				event.stopPropagation();
+				$(this).parents('.collect_group').remove();
+			})
 
 			$('#saved_selectors').on('click', '.saved_selector', function(event){
 				event.stopPropagation();
-				var _this = $(this),
-					selector = decodeURIComponent(_this.data('selector').replace('+', ' '));
+				var _this = $(this);
+				if ( _this.hasClass('active_selector') ) {
+					clear_interface();
+				} else {
+					load_selector_group(this);
+				}
+			});
+
+			$('#desired_selectors').on('click', '.desired_selector', function(event){
+				event.stopPropagation();
+				load_selector_group(this);
+			});
+
+			function load_selector_group(ele){
+				var _this = $(ele),
+					selector = decodeURIComponent(_this.data('selector').replace(/\+/g, ' ')),
+					name = _this.text(),
+					capture = _this.data('capture');
+				$('#selector_name').val(name);
 				$('#selector_string').val(selector);
-				$('#selector_name').val(_this.text());
-				$('#selector_capture').val(_this.data('capture'));
+				$('#selector_capture').val(capture);
+				selector_parts_from_selector(selector);
 				clearClass("query_check");
-				$(selector).addClass("query_check");
+				get_full_selector_elements(selector).addClass("query_check");
 				clearClass('active_selector');
 				_this.addClass('active_selector');
-			});
+			}
+
 
 			$('#collect_preview').click(function(event){
 				event.preventDefault();
@@ -386,9 +435,6 @@
 				fix_dropdown_overflow();
 				clearClass('query_check');
 				clearClass('collect_highlight');
-				clearClass('active_selector');
-				$('#selector_capture').val('');
-				$('#selector_name').val('');
 				if (selector === ''){
 					$('#selector_count').html("Count: 0");
 					$('#selector_string').val("");
@@ -499,6 +545,21 @@
 				}
 				return properties;
 			}
+		}
+
+		function selector_parts_from_selector(selector){
+			var groups = selector.split(' '),
+				curr,
+				selector_groups = '';
+			for ( var i=0, len=groups.length; i < len; i++ ) {
+				curr = $(groups[i]);
+				if ( curr.length ) {
+					var s = new Selector(curr.get(0));
+					selector_groups += s.toHTML(true) + ' ';
+				}
+			}
+			$(selector).addClass('query_check');
+			$('#selector_parts').html(selector_groups);
 		}
 
 		function set_selector_parts(ele){
