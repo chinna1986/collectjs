@@ -118,9 +118,7 @@
 			add_interface_events();
 		}
 
-		/*
-		event listeners associated with elements inside of the collect_interface
-		*/
+		/* event listeners associated with elements inside of the collect_interface	*/
 		function add_interface_events(){
 			var events_on = true;
 			// turn off events for highlighting/selecting page elements
@@ -192,6 +190,7 @@
 						.data('capture', selector_object.capture)
 						.text(selector_object.name)
 						.removeClass('active_selector');
+					// move to saved_selectors
 					if ( active.parents('#desired_selectors').length ) {
 						active
 							.removeClass('desired_selector')
@@ -229,7 +228,12 @@
 
 			$('#desired_selectors').on('click', '.desired_selector', function(event){
 				event.stopPropagation();
-				load_selector_group(this);
+				var _this = $(this);
+				if ( _this.hasClass('active_selector') ) {
+					clear_interface();
+				} else {
+					load_selector_group(this);
+				}
 			});
 
 			function load_selector_group(ele){
@@ -240,7 +244,7 @@
 				$('#selector_name').val(name);
 				$('#selector_string').val(selector);
 				$('#selector_capture').val(capture);
-				selector_parts_from_selector(selector);
+				set_selector_parts_from_selector(selector);
 				clearClass("query_check");
 				get_full_selector_elements(selector).addClass("query_check");
 				clearClass('active_selector');
@@ -369,7 +373,6 @@
 			if ( no_tables && ignored_tags.indexOf( ele.tagName ) > -1 ) {
 				return false;
 			}
-
 			return true;
 		}
 		
@@ -547,16 +550,31 @@
 			}
 		}
 
-		function selector_parts_from_selector(selector){
+		function set_selector_parts_from_selector(selector){
 			var groups = selector.split(' '),
 				curr,
+				$curr,
 				selector_groups = '';
 			for ( var i=0, len=groups.length; i < len; i++ ) {
-				curr = $(groups[i]);
-				if ( curr.length ) {
-					var s = new Selector(curr.get(0));
-					selector_groups += s.toHTML(true) + ' ';
+				curr = groups[i];
+				$curr = $(groups[i]);
+				if ( $curr.length ) {
+					var s = new Selector($curr.get(0));
+					selector_groups += s.toHTML(true);
 				}
+				if ( curr.indexOf(':') !== -1 ){
+					var pseudos = curr.match(/:(.+?)\((.+?)\)/);
+					if ( pseudos.length === 3 ) {
+						// strip off the closing span tag and add pseudoselector toggleable
+						var first_half = selector_groups.slice(0,-231),
+							second_half = selector_groups.slice(-231);
+						selector_groups = first_half + "<span class='pseudo toggleable no_select'>:" + pseudos[1] + "(" + 
+							"<span class='child_toggle' " +
+							"title='options: an+b (a & b are integers), a positive integer (1,2,3...), odd, even'" + 
+							"contenteditable='true'>" + pseudos[2] + "</span>)</span>" + second_half;
+					}
+				}
+				selector_groups += ' ';
 			}
 			$(selector).addClass('query_check');
 			$('#selector_parts').html(selector_groups);
