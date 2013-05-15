@@ -72,7 +72,21 @@
 			$.ajax({
 				dataType: "jsonp",
 				url: json_url,
-				jsonpCallback: 'set_desired_selectors'
+				success: function(data){
+					// loads a json object, array of desired properties to collect
+					var selectors = "",
+						curr;
+					if ( data.names) {
+						for ( var i=0, len=data.names.length; i < len; i++) {
+							curr = data.names[i];
+							selectors += '<span class="collect_group"><span class="desired_selector"'
+							selectors += ' data-selector="' + (curr.selector || '') + '"';
+							selectors += ' data-capture="' + (curr.capture || '') + '"';
+							selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
+						}
+						$('#desired_selectors').html(selectors);
+					}
+				}
 			});
 		};
 
@@ -85,10 +99,15 @@
 		********************/
 
 		function add_css() {
-			var s = document.createElement('style');
-			s.setAttribute('id','collect-style');
-			s.innerText = ".collect_highlight{" + Collect.highlight_css + "}" +
+			var s = document.createElement('style'),
+				css_string = ".collect_highlight{" + Collect.highlight_css + "}" +
 				".query_check, .query_check * {" + Collect.check_css + "}" + "{{collect.css}}";
+			s.setAttribute('id','collect-style');
+			if ( s.innerText ) {
+				s.innerText = css_string;
+			} else if ( s.textContent ) {
+				s.textContent = css_string:
+			}
 			s.setAttribute('type','text/css');
 			$('head').append(s);
 		}
@@ -685,7 +704,6 @@
 				var jQuery191 = jQuery.noConflict();
 				collect = make_collect(jQuery191);
 				collect.setup();
-				collect.load('https://s3.amazonaws.com/collectjs/test.json');
 			}
 		};
 
@@ -693,24 +711,5 @@
 	} else {
 		collect = make_collect(jQuery);
 		collect.setup();
-		collect.load('https://s3.amazonaws.com/collectjs/test.json');
 	}
 })();
-
-window.set_desired_selectors = function(data){
-	// loads a json object, array of desired properties to collect
-	console.log('setting selectors');
-	console.log(data);
-	var selectors = "",
-		curr;
-	if ( data.names) {
-		for ( var i=0, len=data.names.length; i < len; i++) {
-			curr = data.names[i];
-			selectors += '<span class="collect_group"><span class="desired_selector"'
-			selectors += ' data-selector="' + (curr.selector || '') + '"';
-			selectors += ' data-capture="' + (curr.capture || '') + '"';
-			selectors += '>' + curr.name + '</span><span class="deltog">X</span></span>';
-		}
-		document.getElementById('desired_selectors').innerHTML = selectors;
-	}
-}
