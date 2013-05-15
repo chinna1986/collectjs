@@ -99,19 +99,13 @@
 		********************/
 
 		function add_css() {
-			var s = document.createElement('style'),
+			var s = $('<style type="text/css" rel="stylesheet" id="collect-style">'),
 				css_string = ".collect_highlight{" + Collect.highlight_css + "}" +
 				".query_check, .query_check * {" + Collect.check_css + "}" + "{{collect.css}}";
-			s.setAttribute('id','collect-style');
-			if ( s.innerText ) {
-				s.innerText = css_string;
-			} else if ( s.textContent ) {
-				s.textContent = css_string:
-			}
-			s.setAttribute('type','text/css');
+			s.text(css_string);
 			$('head').append(s);
 		}
-
+		
 		function add_interface() {
 			var interface_html = "{{collect.html}}";
 			$(interface_html).appendTo('body');
