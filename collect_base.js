@@ -176,7 +176,8 @@
 				event.preventDefault();
 				var inputs = $('#selector_form input'),
 					selector_object = {},
-					active = $('.active_selector');
+					active = $('.active_selector'),
+					missing = [];
 					
 				for ( var p=0, len=inputs.length; p<len; p++ ) {
 					var curr = inputs[p],
@@ -184,11 +185,14 @@
 						value = curr.value;
 
 					if ( value === '' ) {
-						console.log('missing attribute: ' + name);
-						return;
+						missing.push(name);
 					} else {
 						selector_object[name] = value;
 					}
+				}
+				if ( missing.length !== 0 ){
+					$('#collect_error').html('missing attribute(s): ' + missing.join(', '));
+					return;
 				}
 				// active isn't undefined if you're editing an already saved selector
 				if ( active.length ){
@@ -453,6 +457,7 @@
 				fix_dropdown_overflow();
 				clearClass('query_check');
 				clearClass('collect_highlight');
+				$('#collect_error').html('');
 				if (selector === ''){
 					$('#selector_count').html("Count: 0");
 					$('#selector_string').val("");
@@ -476,6 +481,7 @@
 		function clear_interface(){
 			$('#selector_form input').val('');
 			$('#selector_parts, #selector_count, #selector_text').html('');
+			$('#collect_error').html('');
 			clearClass('query_check');
 			clearClass('active_selector');
 		}

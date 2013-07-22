@@ -118,7 +118,7 @@
 		doesn't interfere with itself, and add event listeners to the interface
 		*/
 		function add_interface() {
-			var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview in Console</button><button id=\"collect_clear\">Clear</button></form></section><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
+			var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"collect_error\"></div><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview in Console</button><button id=\"collect_clear\">Clear</button></form></section><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
 			$(interface_html).appendTo('body');
 			$('#collect_interface, #collect_interface *').addClass('no_select');
 			add_interface_events();
@@ -176,7 +176,8 @@
 				event.preventDefault();
 				var inputs = $('#selector_form input'),
 					selector_object = {},
-					active = $('.active_selector');
+					active = $('.active_selector'),
+					missing = [];
 					
 				for ( var p=0, len=inputs.length; p<len; p++ ) {
 					var curr = inputs[p],
@@ -184,11 +185,14 @@
 						value = curr.value;
 
 					if ( value === '' ) {
-						console.log('missing attribute: ' + name);
-						return;
+						missing.push(name);
 					} else {
 						selector_object[name] = value;
 					}
+				}
+				if ( missing.length !== 0 ){
+					$('#collect_error').html('missing attribute(s): ' + missing.join(', '));
+					return;
 				}
 				// active isn't undefined if you're editing an already saved selector
 				if ( active.length ){
@@ -453,6 +457,7 @@
 				fix_dropdown_overflow();
 				clearClass('query_check');
 				clearClass('collect_highlight');
+				$('#collect_error').html('');
 				if (selector === ''){
 					$('#selector_count').html("Count: 0");
 					$('#selector_string').val("");
@@ -476,6 +481,7 @@
 		function clear_interface(){
 			$('#selector_form input').val('');
 			$('#selector_parts, #selector_count, #selector_text').html('');
+			$('#collect_error').html('');
 			clearClass('query_check');
 			clearClass('active_selector');
 		}
