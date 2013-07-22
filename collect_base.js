@@ -42,7 +42,8 @@
 				};
 
 			function select(event){
-				event.stopPropagation();$(this).addClass('collect_highlight');
+				event.stopPropagation();
+				$(this).addClass('collect_highlight');
 			}
 
 			function deselect(event){
@@ -50,6 +51,9 @@
 				$(this).removeClass('collect_highlight');
 			}
 
+			/*
+			when an element is clicked, 
+			*/
 			function get_query_selector(event){
 				event.stopPropagation();
 				event.preventDefault();
@@ -98,6 +102,9 @@
 		PRIVATE FUNCTIONS
 		********************/
 
+		/*
+		create a style element for the collect interface and insert it into the head
+		*/
 		function add_css() {
 			var s = $('<style type="text/css" rel="stylesheet" id="collect-style">'),
 				css_string = ".collect_highlight{" + Collect.highlight_css + "}" +
@@ -106,6 +113,10 @@
 			$('head').append(s);
 		}
 		
+		/*
+		create the collect interface, add no_select class to its elements so the interface
+		doesn't interfere with itself, and add event listeners to the interface
+		*/
 		function add_interface() {
 			var interface_html = "{{collect.html}}";
 			$(interface_html).appendTo('body');
@@ -163,22 +174,23 @@
 			// create an object for the current query selector/capture data
 			$('#collect_save').click(function(event){
 				event.preventDefault();
-				var form = $('#selector_form'),
-					serialized_form = form.serialize(),
-					inputs = serialized_form.split('&'),
+				var inputs = $('#selector_form input'),
 					selector_object = {},
 					active = $('.active_selector');
-				for ( var i=0, len=inputs.length; i<len; i++ ) {
-					var curr = inputs[i],
-						equal_pos = curr.indexOf('='),
-						name = curr.slice(0,equal_pos),
-						input_data = curr.slice(equal_pos+1);
-					if ( input_data === '' ) {
+					
+				for ( var p=0, len=inputs.length; p<len; p++ ) {
+					var curr = inputs[p],
+						name = curr.getAttribute('name') || 'noname',
+						value = curr.value;
+
+					if ( value === '' ) {
 						console.log('missing attribute: ' + name);
 						return;
+					} else {
+						selector_object[name] = value;
 					}
-					selector_object[name] = input_data;
 				}
+				// active isn't undefined if you're editing an already saved selector
 				if ( active.length ){
 					active
 						.data('selector', selector_object.selector)
@@ -200,9 +212,9 @@
 				clear_interface();
 			});
 
+			// add interactive identifier for saved selectors
 			function add_saved_selector(obj){
-				var saved = $('#saved_selectors');
-				saved.append('<span class="collect_group"><span class="saved_selector"' + 
+				$('#saved_selectors').append('<span class="collect_group"><span class="saved_selector"' + 
 					'data-selector="' + obj.selector + '" data-capture="' + obj.capture + '">' +
 					obj.name + '</span><span class="deltog">x</span></span>');
 			}
@@ -212,6 +224,7 @@
 				$(this).parents('.collect_group').remove();
 			})
 
+			// load saved selector information into the #selector_form for editing
 			$('#saved_selectors').on('click', '.saved_selector', function(event){
 				event.stopPropagation();
 				var _this = $(this);
@@ -232,6 +245,7 @@
 				}
 			});
 
+			// sets the fields in the #selector_form given an element that represents a selector
 			function load_selector_group(ele){
 				var _this = $(ele),
 					selector = decodeURIComponent(_this.data('selector').replace(/\+/g, ' ')),
@@ -411,6 +425,9 @@
 			return $(selector);
 		}
 
+		/*
+		updates the interface based on the states of the (.selector_group)s
+		*/	
 		var update_interface = (function(){
 			/*
 			because the interface has a fixed position, anything that overflows has to be hidden,
@@ -450,10 +467,12 @@
 			};
 		})();
 
+		// purge a classname from all elements with it
 		function clearClass(name){
 			$('.'+name).removeClass(name);
 		}
 
+		// reset the form part of the interface
 		function clear_interface(){
 			$('#selector_form input').val('');
 			$('#selector_parts, #selector_count, #selector_text').html('');
@@ -467,12 +486,13 @@
 		function make_selector_text(element) {
 			var curr, attr, replace_regexp,
 				html = clean_outerhtml(element).replace(/(\s\s+|[\n\t]+)/g, ''),
+				// match all opening html tags along with their attributes
 				tags = html.match(/<[^\/].+?>/g),
 				text_val = $(element).text().replace(/(\s\s+|[\n\t]+)/g, ''),
 				properties = [];
 			// find tag attributes
 			if ( tags ) {
-				properties = unique_properties(tags);
+				properties = unique_attributes(tags);
 			}
 
 			html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -504,6 +524,11 @@
 			}
 			return html;
 
+			/*
+			returns a string representing the html for the @ele element
+			and its text. Child elements of @ele will have their tags stripped, returning
+			only their text. If that text is > 100 characters, concatenates for ease of reading
+			*/
 			function clean_outerhtml(ele){
 				if (!ele) {
 					return '';
@@ -512,6 +537,7 @@
 					$copy = $(copy),
 					text = $copy.text();
 				$copy.removeClass('query_check').removeClass('collect_highlight');
+				// 
 				if ( text.length > 100 ){
 					text = text.slice(0, 25) + "..." + text.slice(-25);
 				}
@@ -519,6 +545,10 @@
 				return copy.outerHTML;
 			}
 
+			/*
+			wrap an attribute or the text of an html string 
+			(used in #selector_text div)
+			*/
 			function wrap_property(ele, val, before, after){
 				// don't include empty properties
 				if ( ele.indexOf('=""') !== -1 ) {
@@ -533,7 +563,13 @@
 				return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 			}
 
-			function unique_properties(tags) {
+			/*
+			@tags is an array of strings of opening html tags
+			eg. <a href="#">
+			returns an array of the unique attributes
+			*/
+			function unique_attributes(tags) {
+				// property regex matchess name="val" or name='val' attributes
 				var property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
 					properties = [],
 					property_check = {},
@@ -553,6 +589,9 @@
 			}
 		}
 
+		/*
+		given a css selector string, create .selector_groups for #selector_parts
+		*/
 		function set_selector_parts_from_selector(selector){
 			var groups = selector.split(' '),
 				curr,
@@ -565,6 +604,7 @@
 					var s = new Selector($curr.get(0));
 					selector_groups += s.toHTML(true);
 				}
+				// handle pseudo classes
 				if ( curr.indexOf(':') !== -1 ){
 					var pseudos = curr.match(/:(.+?)\((.+?)\)/);
 					if ( pseudos.length === 3 ) {
@@ -583,6 +623,10 @@
 			$('#selector_parts').html(selector_groups);
 		}
 
+		/*
+		given an html element, create .selector_group elements to represent all of the elements
+		in range (body, @ele]
+		*/
 		function set_selector_parts(ele){
 			var long_selector = '';
 			clearClass('collect_highlight');
