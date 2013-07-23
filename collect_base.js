@@ -7,8 +7,7 @@
 		var Collect = {
 			highlight_css: "border:1px solid blue !important;",
 			check_css: "background: yellow !important; border: 1px solid yellow !important;",
-			elements: "body *:not(.no_select)",
-			rules: []
+			elements: "body *:not(.no_select)"
 		};
 
 		Collect.setup = function(args){
@@ -21,6 +20,9 @@
 			add_options();
 			add_css();
 			this.events.on();
+			if ( !localStorage.rules ) {
+				localStorage.rules = "[]";
+			}
 		};
 
 		Collect.events = (function(){
@@ -176,7 +178,7 @@
 				event.preventDefault();
 				var inputs = $('#selector_form input'),
 					selector_object = {},
-					active = $('.active_selector'),
+					active = $('.active_selector').eq(0),
 					missing = [];
 					
 				for ( var p=0, len=inputs.length; p<len; p++ ) {
@@ -196,6 +198,9 @@
 				}
 				// active isn't undefined if you're editing an already saved selector
 				if ( active.length ){
+					saveRule(selector_object, parseInt(active.data('index'), 10));
+
+					// modify name, selector, and capture but not index
 					active
 						.data('selector', selector_object.selector)
 						.data('capture', selector_object.capture)
@@ -210,8 +215,10 @@
 							.appendTo('#saved_selectors');
 					}
 				} else {
+					var index = saveRule(selector_object);
+					selector_object.index = index;
+					// call last because index needs to be set
 					add_saved_selector(selector_object);
-					Collect.rules.push(selector_object);
 				}
 				clear_interface();
 			});
@@ -219,14 +226,22 @@
 			// add interactive identifier for saved selectors
 			function add_saved_selector(obj){
 				$('#saved_selectors').append('<span class="collect_group"><span class="saved_selector"' + 
-					'data-selector="' + obj.selector + '" data-capture="' + obj.capture + '">' +
-					obj.name + '</span><span class="deltog">x</span></span>');
+					'data-selector="' + obj.selector + '" data-capture="' + obj.capture + '" data-index="' + obj.index +
+					'">' + obj.name + '</span><span class="deltog">x</span></span>');
 			}
 
 			$('#saved_selectors, #desired_selectors').on('click', '.deltog', function(event){
 				event.stopPropagation();
 				$(this).parents('.collect_group').remove();
-			})
+				var selector_span = this.previousElementSibling,
+					index = parseInt(selector_span.dataset['index'], 10);
+				if ( isNaN(index) ){
+					return;
+				} else {
+					deleteRule(index);
+				}
+				
+			});
 
 			// load saved selector information into the #selector_form for editing
 			$('#saved_selectors').on('click', '.saved_selector', function(event){
@@ -287,10 +302,28 @@
 				}
 			});
 
-			$('#collect_clear').click(function(event){
+			$('#collect_clear_form').click(function(event){
 				event.preventDefault();
 				clear_interface();
 			});
+
+			$('#collect_load_ls').click(function(event){
+				event.preventDefault();
+				var rules = getRules();
+				for ( var i=0, len=rules.length; i<len; i++){
+					var curr = rules[i];
+					if ( curr ){
+						add_saved_selector(curr);
+					}
+				}
+			});
+
+			$('#collect_clear_ls').click(function(){
+				event.preventDefault();
+				clearRules();
+				clear_interface();
+				$('#saved_selectors').html('');
+			})
 
 			$('#selector_parts')
 				.on('click', '.child_toggle', function(event){
@@ -360,6 +393,49 @@
 			}
 
 			
+		}
+
+		/*
+		saves @rule to localStorage.rules array
+		if @index is included, override current rule saved at @index, otherwise
+		append to end of array
+		returns index of rule in localStorage.rules
+		*/
+		function saveRule(rule, index){
+			var rules = getRules(),
+				newIndex;
+			if ( index ) {
+				rules[index] = rule;
+				newIndex = index;
+			} else {
+				// grab before pushing since its 0 based
+				newIndex = rules.length;
+				if ( !rule.index ){
+					rule.index = newIndex;
+				}
+				rules.push(rule);
+			}
+			setRules(rules);
+			return newIndex;
+		}
+
+		function getRules(){
+			return JSON.parse(localStorage.rules);
+		}
+
+		function setRules(arr){
+			localStorage.rules = JSON.stringify(arr);
+		}
+
+		// not actually deleting so that indices aren't messed up, but set to undefined
+		function deleteRule(index){
+			var rules = getRules();
+			rules[index] = undefined;
+			setRules(rules);
+		}
+
+		function clearRules(){
+			delete localStorage.rules;
 		}
 
 		/*
