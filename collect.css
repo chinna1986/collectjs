@@ -1,6 +1,6 @@
 /*
-#collect_interface shouldn't be necessary for most of these rules, but they are included
-to prevent possible selector collisions on sites the script is run on
+#collect_interface shouldn't be necessary for most of these rules, but it is 
+included to prevent possible selector collisions on sites the script is run on
 */
 #collect_interface{
 	position: fixed;
