@@ -229,18 +229,6 @@ var make_collect = function($){
 			clear_interface();
 		});
 
-		// add interactive identifier for saved selectors
-		function add_saved_selector(obj){
-			var selectorString = '<span class="collect_group no_select">' + 
-				'<span class="saved_selector no_select"' + 
-				'data-selector="' + obj.selector + 
-				'" data-capture="' + obj.capture + 
-				'" data-index="' + obj.index +
-				'">' + obj.name + 
-				'</span><span class="deltog no_select">x</span></span>';
-			$('#saved_selectors').append(selectorString);
-		}
-
 		$('#saved_selectors, #desired_selectors').on('click', '.deltog', function(event){
 			event.stopPropagation();
 			$(this).parents('.collect_group').remove();
@@ -255,7 +243,10 @@ var make_collect = function($){
 		});
 
 		// load saved selector information into the #selector_form for editing
-		$('#saved_selectors').on('click', '.saved_selector', function(event){
+		$('#saved_selectors').on('click', '.saved_selector', clear_or_load);
+		$('#desired_selectors').on('click', '.desired_selector', clear_or_load);
+
+		function clear_or_load(event){
 			event.stopPropagation();
 			var _this = $(this);
 			if ( _this.hasClass('active_selector') ) {
@@ -263,38 +254,8 @@ var make_collect = function($){
 			} else {
 				load_selector_group(this);
 			}
-		});
-
-		$('#desired_selectors').on('click', '.desired_selector', function(event){
-			event.stopPropagation();
-			var _this = $(this);
-			if ( _this.hasClass('active_selector') ) {
-				clear_interface();
-			} else {
-				load_selector_group(this);
-			}
-		});
-
-		// sets the fields in the #selector_form given an element 
-		// that represents a selector
-		function load_selector_group(ele){
-			var _this = $(ele),
-				selector = decodeURIComponent(_this.data('selector')
-					.replace(/\+/g, ' ')),
-				name = _this.text(),
-				capture = _this.data('capture');
-			$('#selector_name').val(name);
-			$('#selector_string').val(selector);
-			$('#selector_capture').val(capture);
-			if ( selector !== '' ){
-				set_selector_parts_from_selector(selector);
-				clearClass("query_check");
-				get_full_selector_elements(selector).addClass("query_check");
-			}
-			clearClass('active_selector');
-			_this.addClass('active_selector');
 		}
-
+		
 
 		$('#collect_preview').click(function(event){
 			event.preventDefault();
@@ -390,24 +351,52 @@ var make_collect = function($){
 				add_pseudo('nth-of-type', this);
 				
 			});
-
-		function add_pseudo(pseudoSelector, ele){
-			var _this = $(ele),
-				parent = _this.parents('.selector_group'),
-				pseudo_html = "<span class='pseudo toggleable no_select'>:" + 
-					pseudoSelector + "(<span class='child_toggle' " +
-					"title='options: an+b (a & b are integers), a " +
-					"positive integer (1,2,3...), odd, even'" + 
-					"contenteditable='true'>1</span>)</span>";
-			parent.children('.pseudo').remove();
-			parent.children('.toggleable').last().after($(pseudo_html));
-			// make sure the element is on so this selector makes sense
-			parent.children('.toggleable').eq(0).removeClass('off');
-			update_interface();
-		}
-
-		
 	}
+
+	//add_interface helpers
+
+	// add interactive identifier for saved selectors
+	function add_saved_selector(obj){
+		var selectorString = '<span class="collect_group no_select">' + 
+			'<span class="saved_selector no_select" data-selector="' + obj.selector + 
+			'" data-capture="' + obj.capture + '" data-index="' + obj.index + '">' + obj.name + 
+			'</span><span class="deltog no_select">x</span></span>';
+		$('#saved_selectors').append(selectorString);
+	}
+
+	// sets the fields in the #selector_form given an element 
+	// that represents a selector
+	function load_selector_group(ele){
+		var _this = $(ele),
+			selector = decodeURIComponent(_this.data('selector')
+				.replace(/\+/g, ' ')),
+			name = _this.text(),
+			capture = _this.data('capture');
+		$('#selector_name').val(name);
+		$('#selector_string').val(selector);
+		$('#selector_capture').val(capture);
+		if ( selector !== '' ){
+			set_selector_parts_from_selector(selector);
+			clearClass("query_check");
+			get_full_selector_elements(selector).addClass("query_check");
+		}
+		clearClass('active_selector');
+		_this.addClass('active_selector');
+	}
+
+	function add_pseudo(pseudoSelector, ele){
+		var _this = $(ele),
+			parent = _this.parents('.selector_group'),
+			html = pseudo_html(pseudoSelector);
+		parent.children('.pseudo').remove();
+		parent.children('.toggleable').last().after($(html));
+		// make sure the element is on so this selector makes sense
+		parent.children('.toggleable').eq(0).removeClass('off');
+		update_interface();
+	}
+
+	// end add_interface helpers
+
 
 	/*
 	saves @rule to localStorage.rules array
@@ -596,11 +585,29 @@ var make_collect = function($){
 			html = clean_outerhtml(element).replace(singleSpaceRegexp, ''),
 			// match all opening html tags along with their attributes
 			tags = html.match(/<[^\/].+?>/g),
-			text_val = $(element).text().replace(singleSpaceRegexp, ''),
+			text_val = $(element).text().replace(singleSpaceRegexp, '').replace('&','&amp;'),
 			properties = [];
 		// find tag attributes
 		if ( tags ) {
-			properties = unique_attributes(tags);
+			/*
+			@tags is an array of strings of opening html tags
+			eg. <a href="#">
+			returns an array of the unique attributes
+			*/
+			var property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
+				property_check = {},
+				tagProps = tags.join('').match(property_regex);
+			if ( tagProps ) {
+			// add unique attributes to properties array
+				for ( var p=0, tagLen=tagProps.length; p<tagLen; p++ ) {
+					curr = tagProps[p];
+					if ( !property_check[curr] ) { 
+						properties.push(tagProps[p]);
+						property_check[curr] = true;
+					}
+					
+				}
+			}
 		}
 
 		html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -616,7 +623,7 @@ var make_collect = function($){
 				html = html.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));	
 			}
 		}
-
+		
 		// create capture spans with 'text' targets on all text
 		if ( text_val !== '' ) {
 			if ( text_val.length > 100 ){
@@ -632,73 +639,52 @@ var make_collect = function($){
 			html = html.replace(text_replace_regexp, replace_string);
 		}
 		return html;
-
-		/*
-		returns a string representing the html for the @ele element
-		and its text. Child elements of @ele will have their tags stripped, 
-		returning only their text. 
-		If that text is > 100 characters, concatenates for ease of reading
-		*/
-		function clean_outerhtml(ele){
-			if (!ele) {
-				return '';
-			}
-			var copy = ele.cloneNode(true),
-				$copy = $(copy),
-				text = $copy.text();
-			$copy.removeClass('query_check').removeClass('collect_highlight');
-			// 
-			if ( text.length > 100 ){
-				text = text.slice(0, 25) + "..." + text.slice(-25);
-			}
-			$copy.html(text);
-			return copy.outerHTML;
-		}
-
-		/*
-		wrap an attribute or the text of an html string 
-		(used in #selector_text div)
-		*/
-		function wrap_property(ele, val, before, after){
-			// don't include empty properties
-			if ( ele.indexOf('=""') !== -1 ) {
-				return '';
-			}
-			return (before || '') + '<span class="capture no_select" ' + 
-				'title="click to capture ' + val + ' property" data-capture="' +
-				val + '">' + ele + '</span>' + (after || '');
-		}
-
-		// escape a string for a new RegExp call
-		function escape_regexp(str) {
-			return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
-		}
-
-		/*
-		@tags is an array of strings of opening html tags
-		eg. <a href="#">
-		returns an array of the unique attributes
-		*/
-		function unique_attributes(tags) {
-			// property regex matchess name="val" or name='val' attributes
-			var property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
-				properties = [],
-				property_check = {},
-				tagProps = tags.join('').match(property_regex);
-			if ( tagProps ) {
-				// add unique attributes to properties array
-				for ( var p=0, tagLen=tagProps.length; p<tagLen; p++ ) {
-					curr = tagProps[p];
-					if ( !property_check[curr] ) { 
-						properties.push(tagProps[p]);
-						property_check[curr] = true;
-					}
-					
-				}
-			}
-			return properties;
-		}
 	}
+
+	// make_selector_text helpers
+
+	/*
+	returns a string representing the html for the @ele element
+	and its text. Child elements of @ele will have their tags stripped, 
+	returning only their text. 
+	If that text is > 100 characters, concatenates for ease of reading
+	*/
+	function clean_outerhtml(ele){
+		if (!ele) {
+			return '';
+		}
+		var copy = ele.cloneNode(true),
+			$copy = $(copy),
+			text = $copy.text();
+		$copy.removeClass('query_check').removeClass('collect_highlight');
+		// 
+		if ( text.length > 100 ){
+			text = text.slice(0, 25) + "..." + text.slice(-25);
+		}
+		$copy.html(text);
+		return copy.outerHTML;
+	}
+
+	/*
+	wrap an attribute or the text of an html string 
+	(used in #selector_text div)
+	*/
+	function wrap_property(ele, val, before, after){
+		// don't include empty properties
+		if ( ele.indexOf('=""') !== -1 ) {
+			return '';
+		}
+		return (before || '') + '<span class="capture no_select" ' + 
+			'title="click to capture ' + val + ' property" data-capture="' +
+			val + '">' + ele + '</span>' + (after || '');
+	}
+
+	// escape a string for a new RegExp call
+	function escape_regexp(str) {
+		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+	}
+
+	// end make_selector_text helpers
 
 	/*
 	given a css selector string, create .selector_groups for #selector_parts
@@ -717,6 +703,9 @@ var make_collect = function($){
 			}
 			// handle pseudo classes
 			if ( curr.indexOf(':') !== -1 ){
+				// 0 - full match
+				// 1 - pseudoselector's name
+				// 2 - index
 				var pseudos = curr.match(/:(.+?)\((.+?)\)/);
 				if ( pseudos.length === 3 ) {
 					// strip off the closing span tag and 
@@ -724,18 +713,22 @@ var make_collect = function($){
 					var first_half = selector_groups.slice(0,-231),
 						second_half = selector_groups.slice(-231);
 					selector_groups = first_half + 
-						"<span class='pseudo toggleable no_select'>:" + 
-						pseudos[1] + "(<span class='child_toggle' " +
-						"title='options: an+b (a & b are integers), " + 
-						"a positive integer (1,2,3...), odd, even'" + 
-						"contenteditable='true'>" + pseudos[2] + 
-						"</span>)</span>" + second_half;
+						pseudo_html(pseudos[1], pseudos[2]) +
+						second_half;
 				}
 			}
 			selector_groups += ' ';
 		}
 		$(selector).addClass('query_check');
 		$('#selector_parts').html(selector_groups);
+	}
+
+	function pseudo_html(selector, val) {
+		val = val || 1;
+		return "<span class='pseudo toggleable no_select'>:" + 
+			selector + "(<span class='child_toggle' title='options: an+b " + 
+			"(a & b are integers), a positive integer (1,2,3...), odd, even'" + 
+			"contenteditable='true'>" + pseudos[2] + "</span>)</span>";
 	}
 
 	/*
