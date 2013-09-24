@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-var make_collect = function($){
+var makeCollect = function($){
 	/***************
 	COLLECT OBJECT
 	***************/
@@ -16,9 +16,9 @@ var make_collect = function($){
 			this.check_css = args.check_css || this.check_css;
 			this.elements = args.elements || this.elements;
 		}
-		add_interface();
-		add_options();
-		add_css();
+		addInterface();
+		addOptions();
+		addCSS();
 		this.events.on();
 		if ( !localStorage.rules ) {
 			localStorage.rules = "[]";
@@ -31,14 +31,14 @@ var make_collect = function($){
 					$(Collect.elements).on({
 						mouseenter: select,
 						mouseleave: deselect,
-						click: get_query_selector
+						click: querySelector
 					});						
 				},
 				off: function(){
 					$(Collect.elements).off({
 						mouseenter: select,
 						mouseleave: deselect,
-						click: get_query_selector
+						click: querySelector
 					});
 				}
 			};
@@ -54,20 +54,18 @@ var make_collect = function($){
 		}
 
 		/*
-		when an element is clicked, 
+		when an element is clicked, setup interface data using clicked element
 		*/
-		function get_query_selector(event){
+		function querySelector(event){
 			event.stopPropagation();
 			event.preventDefault();
 			if ( this === null ) {
 				return;
 			}
-			if ( $('.active_selector').length ){
-				set_selector_parts(this);
-			} else {
-				clear_interface();
-				set_selector_parts(this);
+			if ( !$('.active_selector').length ){
+				clearInterface();
 			}
+			elementInterface(this);
 			
 		}
 
@@ -109,7 +107,7 @@ var make_collect = function($){
 	/*
 	create a style element for the collect interface and insert it into the head
 	*/
-	function add_css() {
+	function addCSS() {
 		var s = $('<style type="text/css" rel="stylesheet" id="collect-style">'),
 			css_string = ".collect_highlight{" + Collect.highlight_css + "}" +
 			".query_check, .query_check * {" + Collect.check_css + "}" + "{{collect.css}}";
@@ -121,15 +119,15 @@ var make_collect = function($){
 	create the collect interface, add no_select class to its elements so the interface
 	doesn't interfere with itself, and add event listeners to the interface
 	*/
-	function add_interface() {
+	function addInterface() {
 		var interface_html = "{{collect.html}}";
 		$(interface_html).appendTo('body');
 		$('#collect_interface, #collect_interface *').addClass('no_select');
-		add_interface_events();
+		addInterfaceEvents();
 	}
 
 	/* event listeners associated with elements inside of the collect_interface	*/
-	function add_interface_events(){
+	function addInterfaceEvents(){
 		var events_on = true;
 		// turn off events for highlighting/selecting page elements
 		$('#off_button').click(function(event){
@@ -224,11 +222,12 @@ var make_collect = function($){
 				var index = saveRule(selector_object);
 				selector_object.index = index;
 				// call last because index needs to be set
-				add_saved_selector(selector_object);
+				addSavedSelector(selector_object);
 			}
-			clear_interface();
+			clearInterface();
 		});
 
+		// remove selector rule from localstorage
 		$('#saved_selectors, #desired_selectors').on('click', '.deltog', function(event){
 			event.stopPropagation();
 			$(this).parents('.collect_group').remove();
@@ -243,24 +242,25 @@ var make_collect = function($){
 		});
 
 		// load saved selector information into the #selector_form for editing
-		$('#saved_selectors').on('click', '.saved_selector', clear_or_load);
-		$('#desired_selectors').on('click', '.desired_selector', clear_or_load);
+		$('#saved_selectors').on('click', '.saved_selector', clearOrLoad);
+		$('#desired_selectors').on('click', '.desired_selector', clearOrLoad);
 
-		function clear_or_load(event){
+		function clearOrLoad(event){
 			event.stopPropagation();
 			var _this = $(this);
 			if ( _this.hasClass('active_selector') ) {
-				clear_interface();
+				clearInterface();
 			} else {
-				load_selector_group(this);
+				loadSelectorGroup(this);
 			}
 		}
 		
-
+		// output a preview of current selector form values to the console
+		// to preview what it returns
 		$('#collect_preview').click(function(event){
 			event.preventDefault();
 			var selector = $('#selector_string').val(),
-				eles = get_full_selector_elements(selector),
+				eles = selectorElements(selector),
 				type = $('#selector_capture').val();
 			if ( selector === '' || type === '' ) {
 				console.log("No attribute to capture");
@@ -278,24 +278,26 @@ var make_collect = function($){
 
 		$('#collect_clear_form').click(function(event){
 			event.preventDefault();
-			clear_interface();
+			clearInterface();
 		});
 
-		$('#collect_load_ls').click(function(event){
+		// show saved rules in the interface
+		$('#collect_load').click(function(event){
 			event.preventDefault();
 			var rules = getRules();
 			for ( var i=0, len=rules.length; i<len; i++){
 				var curr = rules[i];
 				if ( curr ){
-					add_saved_selector(curr);
+					addSavedSelector(curr);
 				}
 			}
 		});
 
-		$('#collect_clear_ls').click(function(){
+		// clear out localstorage
+		$('#collect_clear').click(function(){
 			event.preventDefault();
 			clearRules();
-			clear_interface();
+			clearInterface();
 			$('#saved_selectors').html('');
 		})
 
@@ -316,11 +318,11 @@ var make_collect = function($){
 					// if input is bad, reset to 1 and turn the selector off
 					_this.text('1').parent().addClass('off');
 				}
-				update_interface();
+				updateInterface();
 			})
 			.on('click', '.toggleable', function(){
 				$(this).toggleClass('off');
-				update_interface();
+				updateInterface();
 			})
 			.on('mouseenter', '.group_options', function(event){
 				event.stopPropagation();
@@ -333,30 +335,30 @@ var make_collect = function($){
 					index++;
 				}
 				// + 1 to include the hovered selector
-				selector = get_base_selector(index + 1);
+				selector = baseSelector(index + 1);
 				clearClass('collect_highlight');
-				get_full_selector_elements(selector).addClass('collect_highlight');
+				selectorElements(selector).addClass('collect_highlight');
 			})
 			.on('mouseleave', '.selector_group', function(){
 				clearClass('collect_highlight');
 			})
 			.on('click', '.deltog', function(){
 				$(this).parents('.selector_group').remove();
-				update_interface();
+				updateInterface();
 			})
 			.on('click', '.nthchild', function(){
-				add_pseudo('nth-child', this);					
+				addPseudoElement('nth-child', this);					
 			})
 			.on('click', '.nthtype', function(){
-				add_pseudo('nth-of-type', this);
+				addPseudoElement('nth-of-type', this);
 				
 			});
 	}
 
-	//add_interface helpers
+	//addInterface helpers
 
 	// add interactive identifier for saved selectors
-	function add_saved_selector(obj){
+	function addSavedSelector(obj){
 		var selectorString = '<span class="collect_group no_select">' + 
 			'<span class="saved_selector no_select" data-selector="' + obj.selector + 
 			'" data-capture="' + obj.capture + '" data-index="' + obj.index + '">' + obj.name + 
@@ -366,7 +368,7 @@ var make_collect = function($){
 
 	// sets the fields in the #selector_form given an element 
 	// that represents a selector
-	function load_selector_group(ele){
+	function loadSelectorGroup(ele){
 		var _this = $(ele),
 			selector = decodeURIComponent(_this.data('selector')
 				.replace(/\+/g, ' ')),
@@ -376,27 +378,29 @@ var make_collect = function($){
 		$('#selector_string').val(selector);
 		$('#selector_capture').val(capture);
 		if ( selector !== '' ){
-			set_selector_parts_from_selector(selector);
+			selectorInterface(selector);
 			clearClass("query_check");
-			get_full_selector_elements(selector).addClass("query_check");
+			selectorElements(selector).addClass("query_check");
 		}
 		clearClass('active_selector');
 		_this.addClass('active_selector');
 	}
 
-	function add_pseudo(pseudoSelector, ele){
+	function addPseudoElement(pseudoSelector, ele){
 		var _this = $(ele),
 			parent = _this.parents('.selector_group'),
-			html = pseudo_html(pseudoSelector);
+			html = pseudoHTML(pseudoSelector);
 		parent.children('.pseudo').remove();
 		parent.children('.toggleable').last().after($(html));
 		// make sure the element is on so this selector makes sense
 		parent.children('.toggleable').eq(0).removeClass('off');
-		update_interface();
+		updateInterface();
 	}
 
-	// end add_interface helpers
+	// end addInterface helpers
 
+
+	// localstorage related functions
 
 	/*
 	saves @rule to localStorage.rules array
@@ -413,9 +417,7 @@ var make_collect = function($){
 		} else {
 			// grab before pushing since its 0 based
 			newIndex = rules.length;
-			if ( !rule.index ){
-				rule.index = newIndex;
-			}
+			rule.index = rule.index || newIndex;
 			rules.push(rule);
 		}
 		setRules(rules);
@@ -441,10 +443,12 @@ var make_collect = function($){
 		delete localStorage.rules;
 	}
 
+
+
 	/*
 	options modal and selection options
 	*/
-	function add_options(){
+	function addOptions(){
 		var options_html = "{{options.html}}",
 			options_element = $(options_html);
 		options_element.appendTo('body');
@@ -461,7 +465,7 @@ var make_collect = function($){
 	takes an element and applies the rules based on the options, returning true if it passes
 	all requirements
 	*/
-	function selector_rules(ele){
+	function testSelectorRules(ele){
 		// Include Table Elements rule
 		var ignored_tags = ['TABLE', 'TBODY', 'TR','TD', 'THEAD', 'TFOOT',
 			'COL', 'COLGROUP'],
@@ -476,7 +480,7 @@ var make_collect = function($){
 	iterates over selector group elements and builds a string based on 
 	toggleable elements that are not 'off'
 	*/
-	function get_base_selector(index) {
+	function baseSelector(index) {
 		var groups = $('#selector_parts .selector_group'),
 			selector = '',
 			group_selector = '',
@@ -507,7 +511,7 @@ var make_collect = function($){
 	given a selector, apply user options, exclude .no_select elements, 
 	and return jquery array
 	*/
-	function get_full_selector_elements(selector) {
+	function selectorElements(selector) {
 		if ( $('#visible').is(':checked') ) {
 			selector += ':visible';
 		}
@@ -518,13 +522,13 @@ var make_collect = function($){
 	/*
 	updates the interface based on the states of the (.selector_group)s
 	*/	
-	var update_interface = (function(){
+	var updateInterface = (function(){
 		/*
 		because the interface has a fixed position, anything that overflows 
 		has to be hidden, so modify which direction the dropdown goes to 
 		prevent it from being cut off
 		*/
-		function fix_dropdown_overflow(){
+		function fixDropdownOverflow(){
 			var interface_left = $('#collect_interface').offset().left,
 				groups = $('.group_options');
 			groups.each(function(){
@@ -539,9 +543,9 @@ var make_collect = function($){
 		}
 
 		return function(){
-			var selector = get_base_selector(),
+			var selector = baseSelector(),
 				selected;
-			fix_dropdown_overflow();
+			fixDropdownOverflow();
 			clearClass('query_check');
 			clearClass('collect_highlight');
 			$('#collect_error').html('');
@@ -550,12 +554,12 @@ var make_collect = function($){
 				$('#selector_string').val("");
 				$('#selector_text').html("");
 			} else {
-				selected = get_full_selector_elements(selector);
+				selected = selectorElements(selector);
 				selected.addClass('query_check');
 				$('#selector_count').html("Count: " + selected.length);
 				$('#selector_string').val(selector);
-				var selectorText = make_selector_text(selected[0])
-				$('#selector_text').html(selectorText || "no text");
+				var text = selectorText(selected[0])
+				$('#selector_text').html(text || "no text");
 			}
 		};
 	})();
@@ -566,7 +570,7 @@ var make_collect = function($){
 	}
 
 	// reset the form part of the interface
-	function clear_interface(){
+	function clearInterface(){
 		$('#selector_form input').val('');
 		$('#selector_parts, #selector_count, #selector_text').html('');
 		$('#collect_error').html('');
@@ -578,11 +582,11 @@ var make_collect = function($){
 	given an element, return html for selector text with 
 	"capture"able parts wrapped
 	*/
-	function make_selector_text(element) {
+	function selectorText(element) {
 		var curr, attr, replace_regexp,
 			// match 2+ spaces, newlines, and tabs
 			singleSpaceRegexp = /(\s{2,}|[\n\t]+)/g,
-			html = clean_outerhtml(element).replace(singleSpaceRegexp, ''),
+			html = cleanOuterHTML(element).replace(singleSpaceRegexp, ''),
 			// match all opening html tags along with their attributes
 			tags = html.match(/<[^\/].+?>/g),
 			text_val = $(element).text().replace(singleSpaceRegexp, '').replace('&','&amp;'),
@@ -615,12 +619,12 @@ var make_collect = function($){
 		for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
 			curr = properties[i];
 			attr = curr.slice(0, curr.indexOf('='));
-			replace_regexp = new RegExp(escape_regexp(curr), 'g');
+			replace_regexp = new RegExp(escapeRegExp(curr), 'g');
 			// don't include on___ properties
 			if ( attr.indexOf('on') === 0 ) {
 				html = html.replace(replace_regexp, '');	
 			} else {
-				html = html.replace(replace_regexp, wrap_property(curr, 'attr-' + attr));	
+				html = html.replace(replace_regexp, wrapProperty(curr, 'attr-' + attr));	
 			}
 		}
 		
@@ -632,15 +636,15 @@ var make_collect = function($){
 			// strip preceding/trailing spaces
 			text_val = text_val.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 			text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
-			var regexp_string = '(?:&gt;\\s*)' + escape_regexp(text_val) + '(?:\\s*&lt;)',
+			var regexp_string = '(?:&gt;\\s*)' + escapeRegExp(text_val) + '(?:\\s*&lt;)',
 				text_replace_regexp = new RegExp(regexp_string, 'g'),
-				replace_string = wrap_property(text_val, 'text', '&gt;', '&lt;');
+				replace_string = wrapProperty(text_val, 'text', '&gt;', '&lt;');
 			html = html.replace(text_replace_regexp, replace_string);
 		}
 		return html;
 	}
 
-	// make_selector_text helpers
+	// selectorText helpers
 
 	/*
 	returns a string representing the html for the @ele element
@@ -648,12 +652,13 @@ var make_collect = function($){
 	returning only their text. 
 	If that text is > 100 characters, concatenates for ease of reading
 	*/
-	function clean_outerhtml(ele){
+	function cleanOuterHTML(ele){
 		if (!ele) {
 			return '';
 		}
 		var copy = ele.cloneNode(true),
 			$copy = $(copy),
+			// strip unnecessary spaces spit out by some template englines
 			text = $copy.text().replace(/(\s{2,}|[\n\t]+)/g,' ');
 		$copy.removeClass('query_check').removeClass('collect_highlight');
 		// 
@@ -668,7 +673,7 @@ var make_collect = function($){
 	wrap an attribute or the text of an html string 
 	(used in #selector_text div)
 	*/
-	function wrap_property(ele, val, before, after){
+	function wrapProperty(ele, val, before, after){
 		// don't include empty properties
 		if ( ele.indexOf('=""') !== -1 ) {
 			return '';
@@ -679,16 +684,16 @@ var make_collect = function($){
 	}
 
 	// escape a string for a new RegExp call
-	function escape_regexp(str) {
+	function escapeRegExp(str) {
 		return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 	}
 
-	// end make_selector_text helpers
+	// end selectorText helpers
 
 	/*
 	given a css selector string, create .selector_groups for #selector_parts
 	*/
-	function set_selector_parts_from_selector(selector){
+	function selectorInterface(selector){
 		var groups = selector.split(' '),
 			curr,
 			$curr,
@@ -712,7 +717,7 @@ var make_collect = function($){
 					var first_half = selector_groups.slice(0,-231),
 						second_half = selector_groups.slice(-231);
 					selector_groups = first_half + 
-						pseudo_html(pseudos[1], pseudos[2]) +
+						pseudoHTML(pseudos[1], pseudos[2]) +
 						second_half;
 				}
 			}
@@ -722,7 +727,7 @@ var make_collect = function($){
 		$('#selector_parts').html(selector_groups);
 	}
 
-	function pseudo_html(selector, val) {
+	function pseudoHTML(selector, val) {
 		return "<span class='pseudo toggleable no_select'>:" + 
 			selector + "(<span class='child_toggle' title='options: an+b " + 
 			"(a & b are integers), a positive integer (1,2,3...), odd, even'" + 
@@ -733,7 +738,7 @@ var make_collect = function($){
 	given an html element, create .selector_group elements to represent 
 	all of the elements in range (body, @ele]
 	*/
-	function set_selector_parts(ele){
+	function elementInterface(ele){
 		var long_selector = '';
 		clearClass('collect_highlight');
 		if ( !ele ) {
@@ -743,9 +748,9 @@ var make_collect = function($){
 		if ( ele.tagName === "SELECT" ) {
 			ele = ele.children[0];
 		}
-		long_selector = get_element_selector(ele);
+		long_selector = elementSelector(ele);
 		$('#selector_parts').html(long_selector);
-		update_interface();
+		updateInterface();
 	}
 
 
@@ -757,14 +762,14 @@ var make_collect = function($){
 	group selector) a toggleable element can be turned on/off
 	to test what is selected when it is/isn't included in the query selector
 	*/
-	function get_element_selector(ele) {
+	function elementSelector(ele) {
 		var ele_selector,
 			selector = '',
 			count = 0,
 			toggle_on = true;
 		// stop generating selector when you get to the body element
 		while ( ele.tagName !== "BODY" ){
-			if ( !selector_rules(ele) ) {
+			if ( !testSelectorRules(ele) ) {
 				ele = ele.parentElement;
 				continue;
 			}
@@ -850,14 +855,14 @@ if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
 			// noconflict to prevent interfering with
 			// native page's jquery
 			var jQuery191 = jQuery.noConflict();
-			window.collect = make_collect(jQuery191);
+			window.collect = makeCollect(jQuery191);
 			window.collect.setup();
 		}
 	};
 
 	document.getElementsByTagName("head")[0].appendChild(script);
 } else {
-	window.collect = make_collect(jQuery);
+	window.collect = makeCollect(jQuery);
 	window.collect.setup();
 }
 })();
