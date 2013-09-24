@@ -632,8 +632,7 @@ var make_collect = function($){
 			// strip preceding/trailing spaces
 			text_val = text_val.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 			text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
-			var regexp_string = '(?:&gt;\\s*)(' + escape_regexp(text_val) + 
-				')(?:\\s*&lt;)',
+			var regexp_string = '(?:&gt;\\s*)' + escape_regexp(text_val) + '(?:\\s*&lt;)',
 				text_replace_regexp = new RegExp(regexp_string, 'g'),
 				replace_string = wrap_property(text_val, 'text', '&gt;', '&lt;');
 			html = html.replace(text_replace_regexp, replace_string);
@@ -655,7 +654,7 @@ var make_collect = function($){
 		}
 		var copy = ele.cloneNode(true),
 			$copy = $(copy),
-			text = $copy.text();
+			text = $copy.text().replace(/(\s{2,}|[\n\t]+)/g,' ');
 		$copy.removeClass('query_check').removeClass('collect_highlight');
 		// 
 		if ( text.length > 100 ){
@@ -724,11 +723,10 @@ var make_collect = function($){
 	}
 
 	function pseudo_html(selector, val) {
-		val = val || 1;
 		return "<span class='pseudo toggleable no_select'>:" + 
 			selector + "(<span class='child_toggle' title='options: an+b " + 
 			"(a & b are integers), a positive integer (1,2,3...), odd, even'" + 
-			"contenteditable='true'>" + pseudos[2] + "</span>)</span>";
+			"contenteditable='true'>" + (val || 1 ) + "</span>)</span>";
 	}
 
 	/*
