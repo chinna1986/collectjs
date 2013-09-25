@@ -151,6 +151,7 @@ var makeCollect = function($){
 			Collect.events.off();
 			clearClass('query_check');
 			clearClass('collect_highlight');
+			clearClass('collect_preview');
 			$('#collect_interface, #options_interface, #collect-style, #options_background').remove();
 		});
 
@@ -285,6 +286,7 @@ var makeCollect = function($){
 		$('#collect_load').click(function(event){
 			event.preventDefault();
 			var rules = getRules();
+			$('#saved_selectors').html('');
 			for ( var i=0, len=rules.length; i<len; i++){
 				var curr = rules[i];
 				if ( curr ){
@@ -301,8 +303,9 @@ var makeCollect = function($){
 			$('#saved_selectors').html('');
 		});
 
-		$('#collect_apply').click(function(event){
+		$('#collect_preview_saved').click(function(event){
 			event.preventDefault();
+			clearInterface();
 			var rules = getRules();
 			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
 				var curr, results, resultsLen, prop;
@@ -324,7 +327,9 @@ var makeCollect = function($){
 				}
 				console.group(curr.name);
 				for (var r=0; r<resultsLen; r++ ) {
-					console.log(prop(results[r]));
+					var ele = results[r];
+					$(ele).addClass("collect_preview");
+					console.log(prop(ele));
 				}
 				console.groupEnd();
 			}
@@ -461,15 +466,28 @@ var makeCollect = function($){
 		localStorage.rules = JSON.stringify(arr);
 	}
 
-	// not actually deleting so that indices aren't messed up
 	function deleteRule(index){
-		var rules = getRules();
-		rules[index] = undefined;
-		setRules(rules);
+		var rules = getRules(),
+			rulesLen = rules.length,
+			newRules = [];
+		console.log(rules);
+		for ( var i=0; i<rulesLen; i++ ) {
+			if ( index === i ){
+				continue;
+			} else {
+				var curr = rules[i];
+				// decrement index for values after removed index
+				curr.index = (i < index) ? i : (i-1) ;
+				newRules.push(curr);
+			}
+		}
+		console.log(newRules);
+		setRules(newRules);
 	}
 
 	function clearRules(){
 		delete localStorage.rules;
+		localStorage.rules = "[]";
 	}
 
 
@@ -605,6 +623,7 @@ var makeCollect = function($){
 		$('#collect_error').html('');
 		clearClass('query_check');
 		clearClass('active_selector');
+		clearClass('collect_preview');
 	}
 
 	/*

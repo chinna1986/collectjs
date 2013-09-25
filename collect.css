@@ -246,6 +246,15 @@ included to prevent possible selector collisions on sites the script is run on
  }
 
 .query_check, .query_check *{ 
-	background: yellow !important; 
+	background: rgba(255,215,0,0.25) !important; 
 	border: 1px solid yellow; 
+}
+
+/* for nested query_checks, vary opacity to differentiate between elements*/
+.query_check .query_check{
+	background: rgba(255,215,0,0.75) !important; 
+}
+
+.collect_preview, .collect_preview *{
+	background: rgba(255,0,0,0.25) !important; 
 }
