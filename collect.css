@@ -51,11 +51,31 @@ included to prevent possible selector collisions on sites the script is run on
 	right:0;
 }
 
-#collect_interface #form_inputs {
+#form_inputs {
 	margin: 15px 0;
+	width: 60%;
+	display: inline-block;
 }
 
-#collect_interface #control_buttons button{
+#form_buttons {
+	display: inline-block;
+	width: 40%;
+}
+
+#form_buttons .button_group:first-child{
+	border-bottom: 1px solid #aaa;
+}
+
+#form_buttons .button_group{
+	display: block;
+	padding: 5px 0;
+}
+
+.button_group button{
+	margin-bottom:5px;
+}
+
+#control_buttons button{
 	padding: 2px 5px;
 	margin: 0;
 	border: 1px solid #444;
@@ -66,12 +86,11 @@ included to prevent possible selector collisions on sites the script is run on
 	border-radius: 0;
 }
 
-#collect_interface.attach_top #control_buttons button{
+.attach_top #control_buttons button{
 	border-top: 0;
 }
 
 #collect_interface button {
-	margin-right: 10px;
 	line-height: 1em;
 	height: 2em;
 	float: none;

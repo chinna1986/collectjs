@@ -308,12 +308,11 @@ var makeCollect = function($){
 			event.preventDefault();
 			clearInterface();
 			var rules = getRules();
+			$('#saved_selectors').html('');
 			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
 				var curr, results, resultsLen, prop;
 				curr = rules[i];
-				if( curr === null ) {
-					continue;
-				}
+				addSavedSelector(curr);
 				results = document.querySelectorAll(curr.selector);
 				resultsLen = results.length;
 				if (curr.capture==="text") { 
@@ -471,18 +470,17 @@ var makeCollect = function($){
 		var rules = getRules(),
 			rulesLen = rules.length,
 			newRules = [];
-		console.log(rules);
 		for ( var i=0; i<rulesLen; i++ ) {
+			var curr = rules[i];
 			if ( index === i ){
+				$(curr.selector).removeClass('saved_preview')
 				continue;
 			} else {
-				var curr = rules[i];
 				// decrement index for values after removed index
 				curr.index = (i < index) ? i : (i-1) ;
 				newRules.push(curr);
 			}
 		}
-		console.log(newRules);
 		setRules(newRules);
 	}
 
