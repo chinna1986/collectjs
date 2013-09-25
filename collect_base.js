@@ -138,6 +138,7 @@ var makeCollect = function($){
 				_this.text('On');
 				clearClass('query_check');
 				clearClass('collect_highlight');
+				clearClass('saved_preview');
 			} else {
 				Collect.events.on();
 				_this.text('Off');
@@ -151,7 +152,7 @@ var makeCollect = function($){
 			Collect.events.off();
 			clearClass('query_check');
 			clearClass('collect_highlight');
-			clearClass('collect_preview');
+			clearClass('saved_preview');
 			$('#collect_interface, #options_interface, #collect-style, #options_background').remove();
 		});
 
@@ -325,10 +326,10 @@ var makeCollect = function($){
 							return ele.getAttribute(attribute);
 					};
 				}
-				console.group(curr.name);
+				console.group("%s, count: %s", curr.name, resultsLen);
 				for (var r=0; r<resultsLen; r++ ) {
 					var ele = results[r];
-					$(ele).addClass("collect_preview");
+					$(ele).addClass("saved_preview");
 					console.log(prop(ele));
 				}
 				console.groupEnd();
@@ -623,7 +624,7 @@ var makeCollect = function($){
 		$('#collect_error').html('');
 		clearClass('query_check');
 		clearClass('active_selector');
-		clearClass('collect_preview');
+		clearClass('saved_preview');
 	}
 
 	/*
