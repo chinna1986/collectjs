@@ -299,7 +299,36 @@ var makeCollect = function($){
 			clearRules();
 			clearInterface();
 			$('#saved_selectors').html('');
-		})
+		});
+
+		$('#collect_apply').click(function(event){
+			event.preventDefault();
+			var rules = getRules();
+			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
+				var curr, results, resultsLen, prop;
+				curr = rules[i];
+				if( curr === null ) {
+					continue;
+				}
+				results = document.querySelectorAll(curr.selector);
+				resultsLen = results.length;
+				if (curr.capture==="text") { 
+					prop = function(ele){
+						return ele.innerText;
+					}
+				} else if (curr.capture.indexOf("attr-")===0) {
+					var attribute = curr.capture.split('-')[1];
+					prop = function(ele){
+							return ele.getAttribute(attribute);
+					};
+				}
+				console.group(curr.name);
+				for (var r=0; r<resultsLen; r++ ) {
+					console.log(prop(results[r]));
+				}
+				console.groupEnd();
+			}
+		});
 
 		$('#selector_parts')
 			.on('click', '.child_toggle', function(event){
@@ -672,6 +701,7 @@ var makeCollect = function($){
 	/*
 	wrap an attribute or the text of an html string 
 	(used in #selector_text div)
+
 	*/
 	function wrapProperty(ele, val, before, after){
 		// don't include empty properties

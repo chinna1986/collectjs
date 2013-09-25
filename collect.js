@@ -120,7 +120,7 @@ var makeCollect = function($){
 	doesn't interfere with itself, and add event listeners to the interface
 	*/
 	function addInterface() {
-		var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"collect_error\"></div><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview in Console</button><button id=\"collect_clear_form\">Clear Form</button> |<button id=\"collect_load\">Load Saved Rules</button><button id=\"collect_clear\">Clear Saved Rules</button></form></section><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
+		var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"collect_error\"></div><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview in Console</button><button id=\"collect_clear_form\">Clear Form</button> |<button id=\"collect_load\">Load Saved Rules</button><button id=\"collect_clear\">Clear Saved Rules</button><button id=\"collect_apply\">Apply Saved Rules</button></form></section><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
 		$(interface_html).appendTo('body');
 		$('#collect_interface, #collect_interface *').addClass('no_select');
 		addInterfaceEvents();
@@ -299,7 +299,36 @@ var makeCollect = function($){
 			clearRules();
 			clearInterface();
 			$('#saved_selectors').html('');
-		})
+		});
+
+		$('#collect_apply').click(function(event){
+			event.preventDefault();
+			var rules = getRules();
+			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
+				var curr, results, resultsLen, prop;
+				curr = rules[i];
+				if( curr === null ) {
+					continue;
+				}
+				results = document.querySelectorAll(curr.selector);
+				resultsLen = results.length;
+				if (curr.capture==="text") { 
+					prop = function(ele){
+						return ele.innerText;
+					}
+				} else if (curr.capture.indexOf("attr-")===0) {
+					var attribute = curr.capture.split('-')[1];
+					prop = function(ele){
+							return ele.getAttribute(attribute);
+					};
+				}
+				console.group(curr.name);
+				for (var r=0; r<resultsLen; r++ ) {
+					console.log(prop(results[r]));
+				}
+				console.groupEnd();
+			}
+		});
 
 		$('#selector_parts')
 			.on('click', '.child_toggle', function(event){
@@ -672,6 +701,7 @@ var makeCollect = function($){
 	/*
 	wrap an attribute or the text of an html string 
 	(used in #selector_text div)
+
 	*/
 	function wrapProperty(ele, val, before, after){
 		// don't include empty properties
