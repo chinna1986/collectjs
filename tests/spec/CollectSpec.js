@@ -77,6 +77,22 @@ describe("escapeRegExp", function(){
     });
 });
 
+describe("jQuery.fn.swapClasses", function(){
+    it("removes oldClass, adds newClass to element", function(){
+        var ele = $('<div class="old"></div>');
+        ele.swapClasses('old','new');
+        expect(ele.hasClass('old')).toBe(false);
+        expect(ele.hasClass('new')).toBe(true);
+    });
+
+    it("handles multiple elements", function(){
+        var eles = $('<div class="old"></div><div class="old"></div>');
+        eles.swapClasses('old','new');
+        expect($(eles[0]).hasClass('new')).toBe(true);
+        expect($(eles[1]).hasClass('new')).toBe(true);
+    });
+});
+
 /*
 describe("", function(){
     it("", function(){

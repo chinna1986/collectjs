@@ -17,8 +17,6 @@ var makeCollect = function($){
 			this.elements = args.elements || this.elements;
 		}
 		addInterface();
-		addOptions();
-		addCSS();
 		this.events.on();
 		if ( !localStorage.rules ) {
 			localStorage.rules = "[]";
@@ -66,12 +64,12 @@ var makeCollect = function($){
 				clearInterface();
 			}
 			elementInterface(this);
-			
 		}
 
 		return event_obj;
 	})();
 
+	// not yet implemented
 	Collect.load = function(json_url){
 		$.ajax({
 			dataType: "jsonp",
@@ -103,6 +101,20 @@ var makeCollect = function($){
 	/********************
 	PRIVATE FUNCTIONS
 	********************/
+	
+	/*
+	create the collect interface, add no_select class to its elements so the interface
+	doesn't interfere with itself, and add event listeners to the interface
+	*/
+	function addInterface() {
+		var interface_html = "{{collect.html}}";
+		$(interface_html).appendTo('body');
+		$('#collect_interface, #collect_interface *').addClass('no_select');
+		addCSS();
+		addInterfaceEvents();
+		addOptions();
+		addPreview();
+	}
 
 	/*
 	create a style element for the collect interface and insert it into the head
@@ -113,17 +125,6 @@ var makeCollect = function($){
 			".query_check, .query_check * {" + Collect.check_css + "}" + "{{collect.css}}";
 		s.text(css_string);
 		$('head').append(s);
-	}
-	
-	/*
-	create the collect interface, add no_select class to its elements so the interface
-	doesn't interfere with itself, and add event listeners to the interface
-	*/
-	function addInterface() {
-		var interface_html = "{{collect.html}}";
-		$(interface_html).appendTo('body');
-		$('#collect_interface, #collect_interface *').addClass('no_select');
-		addInterfaceEvents();
 	}
 
 	/* event listeners associated with elements inside of the collect_interface	*/
@@ -161,17 +162,21 @@ var makeCollect = function($){
 			event.stopPropagation();
 			var collect_interface = $('#collect_interface');
 			if ( collect_interface.hasClass('attach_top') ) {
-				collect_interface
-					.removeClass('attach_top')
-					.addClass('attach_bottom');
+				collect_interface.swapClasses('attach_top', 'attach_bottom');
 				$(this).text('Move to Top');
 			} else {
-				collect_interface
-					.removeClass('attach_bottom')
-					.addClass('attach_top');
+				collect_interface.swapClasses('attach_bottom', 'attach_top');
 				$(this).text('Move to Bottom');
 			}
 		});
+
+		jQuery.fn.swapClasses = function(oldClass, newClass){
+			return this.each(function(){
+				$(this)
+					.removeClass(oldClass)
+					.addClass(newClass);
+			})
+		}
 
 		// select which attribute (or text) to capture desired data from query selected elements
 		$('#selector_text').on('click', '.capture', function(){
@@ -215,14 +220,12 @@ var makeCollect = function($){
 				// move to saved_selectors
 				if ( active.parents('#desired_selectors').length ) {
 					active
-						.removeClass('desired_selector')
-						.addClass('saved_selector')
+						.swapClasses('desired_selector', 'saved_selector')
 						.parents('.collect_group')
 						.appendTo('#saved_selectors');
 				}
 			} else {
-				var index = saveRule(selector_object);
-				selector_object.index = index;
+				selector_object.index = saveRule(selector_object);
 				// call last because index needs to be set
 				addSavedSelector(selector_object);
 			}
@@ -234,7 +237,7 @@ var makeCollect = function($){
 			event.stopPropagation();
 			$(this).parents('.collect_group').remove();
 			var selector_span = this.previousElementSibling,
-				index = parseInt(selector_span.dataset['index'], 10);
+				index = parseInt(selector_span.dataset.index, 10);
 			if ( isNaN(index) ){
 				return;
 			} else {
@@ -257,25 +260,28 @@ var makeCollect = function($){
 			}
 		}
 		
-		// output a preview of current selector form values to the console
-		// to preview what it returns
+		// output a preview of current selector form values to the preview modal
 		$('#collect_preview').click(function(event){
 			event.preventDefault();
 			var selector = $('#selector_string').val(),
 				eles = selectorElements(selector),
-				type = $('#selector_capture').val();
+				type = $('#selector_capture').val(),
+				outString = '';
 			if ( selector === '' || type === '' ) {
-				console.log("No attribute to capture");
+				$("#preview_holder").html("No attribute to capture");
 			} else if ( type === 'text' ) {
 				eles.each(function(){
-					console.log($(this).text());
+					outString += "<p>" + ($(this).text()) + "</p>";
 				});
+				$("#preview_holder").html(outString);
 			} else if ( type.indexOf('attr-') === 0 ) {
 				var attr = type.slice(type.indexOf('-')+1);
 				eles.each(function(){
-					console.log($(this).prop(attr));
+					outString += "<p>" + ($(this).prop(attr)) + "</p>";
 				});
+				$("#preview_holder").html(outString);
 			}
+			$("#preview_interface, #preview_background").show();
 		});
 
 		$('#collect_clear_form').click(function(event){
@@ -307,33 +313,42 @@ var makeCollect = function($){
 		$('#collect_preview_saved').click(function(event){
 			event.preventDefault();
 			clearInterface();
-			var rules = getRules();
+			var rules = getRules(),
+				outString = '';
 			$('#saved_selectors').html('');
+
 			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
 				var curr, results, resultsLen, prop;
 				curr = rules[i];
 				addSavedSelector(curr);
 				results = document.querySelectorAll(curr.selector);
 				resultsLen = results.length;
-				if (curr.capture==="text") { 
-					prop = function(ele){
-						return ele.innerText;
-					}
-				} else if (curr.capture.indexOf("attr-")===0) {
-					var attribute = curr.capture.split('-')[1];
-					prop = function(ele){
-							return ele.getAttribute(attribute);
-					};
-				}
-				console.group("%s, count: %s", curr.name, resultsLen);
+				prop = captureFunction(curr);
+				outString += "<div class='preview_group'><h2>" + curr.name + 
+					"(Count: " + resultsLen + ")</h2><ul>";
 				for (var r=0; r<resultsLen; r++ ) {
 					var ele = results[r];
 					$(ele).addClass("saved_preview");
-					console.log(prop(ele));
+					outString += "<li>" + prop(ele) + "</li>";
 				}
-				console.groupEnd();
+				outString += "</ul></div>";
 			}
+			$('#preview_holder').html(outString);
+			$("#preview_interface, #preview_background").show();
 		});
+
+		function captureFunction(curr){
+			if (curr.capture==="text") { 
+				return function(ele){
+					return ele.innerText;
+				};
+			} else if (curr.capture.indexOf("attr-")===0) {
+				var attribute = curr.capture.split('-')[1];
+				return function(ele){
+						return ele.getAttribute(attribute);
+				};
+			}
+		}
 
 		$('#selector_parts')
 			.on('click', '.child_toggle', function(event){
@@ -387,6 +402,38 @@ var makeCollect = function($){
 				addPseudoElement('nth-of-type', this);
 				
 			});
+	}
+
+	/*
+	options modal and selection options
+	*/
+	function addOptions(){
+		var options_html = "{{options.html}}",
+			options_element = $(options_html);
+		options_element.appendTo('body');
+		$('#options_background, #options_interface, #options_interface *').addClass('no_select');
+		$("#open_options, #close_options, #options_background").click(function(event){
+			event.preventDefault();
+			event.stopPropagation();
+			options_element.toggle();
+		});
+
+	}
+
+	/*
+	adds 
+	*/
+	function addPreview(){
+		var preview_html = "{{preview.html}}",
+			preview_element = $(preview_html);
+		preview_element.appendTo('body');
+		$('#preview_background, #preview_interface, #preview_interface *').addClass('no_select');
+		$("#close_preview, #preview_background").click(function(event){
+			event.preventDefault();
+			event.stopPropagation();
+			preview_element.toggle();
+			clearClass('saved_preview');
+		});
 	}
 
 	//addInterface helpers
@@ -473,7 +520,7 @@ var makeCollect = function($){
 		for ( var i=0; i<rulesLen; i++ ) {
 			var curr = rules[i];
 			if ( index === i ){
-				$(curr.selector).removeClass('saved_preview')
+				$(curr.selector).removeClass('saved_preview');
 				continue;
 			} else {
 				// decrement index for values after removed index
@@ -487,24 +534,6 @@ var makeCollect = function($){
 	function clearRules(){
 		delete localStorage.rules;
 		localStorage.rules = "[]";
-	}
-
-
-
-	/*
-	options modal and selection options
-	*/
-	function addOptions(){
-		var options_html = "{{options.html}}",
-			options_element = $(options_html);
-		options_element.appendTo('body');
-		$('#options_background, #options_interface, #options_interface *').addClass('no_select');
-		$("#open_options, #close_options, #options_background").click(function(event){
-			event.preventDefault();
-			event.stopPropagation();
-			options_element.toggle();
-		});
-
 	}
 
 	/*
@@ -604,7 +633,7 @@ var makeCollect = function($){
 				selected.addClass('query_check');
 				$('#selector_count').html("Count: " + selected.length);
 				$('#selector_string').val(selector);
-				var text = selectorText(selected[0])
+				var text = selectorText(selected[0]);
 				$('#selector_text').html(text || "no text");
 			}
 		};
@@ -889,7 +918,7 @@ var makeCollect = function($){
 	return Collect;	
 };
 
-var v = "1.9.1"
+var v = "1.9.1";
 if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
 	var done = false,
 		script = document.createElement("script");

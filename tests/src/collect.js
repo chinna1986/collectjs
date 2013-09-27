@@ -105,3 +105,11 @@ function wrapProperty(ele, val, before, after){
 function escapeRegExp(str) {
     return str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
 }
+
+jQuery.fn.swapClasses = function(oldClass, newClass){
+    return this.each(function(){
+        $(this)
+            .removeClass(oldClass)
+            .addClass(newClass);
+    })
+}
