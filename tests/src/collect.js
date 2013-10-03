@@ -113,3 +113,76 @@ jQuery.fn.swapClasses = function(oldClass, newClass){
             .addClass(newClass);
     })
 }
+
+/*
+saves @rule to localStorage.rules array
+*/
+function saveRule(group, rule){
+    // should this break if group isn't passed?
+    if ( arguments.length !== 2) {
+        return false;
+    }
+    var rules = getRules(group),
+        active = $('.active_selector');
+    if ( active.length ) {
+        var activeName = active.eq(0).text();
+        if ( activeName !== rule.name ){
+            delete rules[activeName];
+        }
+    }
+    
+    rules[rule.name] = rule;
+    setRules(group, rules);
+    return true;
+}
+
+// group argument optional, if not included return all rules
+function getRules(group){
+    if ( localStorage.rules === undefined ) {
+        localStorage.rules = "{}";
+    }
+    var rules = JSON.parse(localStorage.rules);
+    if ( group === undefined ) {
+        return rules
+    } else {
+        // create group if it doesn't exist
+        if ( rules[group] === undefined ) {
+            rules[group] = {};
+            localStorage.rules = JSON.stringify(rules);
+        }
+        return rules[group];    
+    }
+}
+
+// only used by other localStorage calls
+function setRules(group, obj){
+    var rules = getRules();
+    rules[group] = obj;
+    localStorage.rules = JSON.stringify(rules);
+}
+
+function deleteRule(group, name){
+    if ( arguments.length !== 2) {
+        return false;
+    }
+    var rules = getRules(group),
+        returnVal = true;
+    if ( rules[name] ) {
+        $(rules[name].selector).removeClass('saved_preview');
+        delete rules[name];
+    } else {
+        returnVal = false;
+    }
+    setRules(group, rules);
+    return returnVal;
+}
+
+function clearRules(group){
+    if ( group === undefined ) {
+        localStorage.rules = "{}";
+    } else {
+        var currGroups = JSON.parse(localStorage.rules);
+        delete currGroups[group];
+        localStorage.rules = JSON.stringify(currGroups);
+    }    
+}

@@ -20,13 +20,15 @@ def insert_code(filename):
 		code = fp.read()
 	# get rid of whitespace characters except for spaces to fit on one line
 	code = code.replace("'", "\\'").replace('"', '\\"')
+	# strip newlines and tabs
 	code = re.sub(r'[\t\n\r\f\v]', '', code)
 	code = re.sub(r'\/\*.+?\*\/', '', code)
 	return code
 
 def upload_to_s3():
 	with open('.env') as fp:
-		access, secret_access = fp.read().split('\n', 1)
+		# .env file is only 2 lines, but use check to prevent error in case that gets modified
+		access, secret_access = fp.read().splitlines()[:2]
 	if access is None or secret_access is None:
 		return
 	conn = S3Connection(access, secret_access)

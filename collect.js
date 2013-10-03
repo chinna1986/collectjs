@@ -19,7 +19,7 @@ var makeCollect = function($){
 		addInterface();
 		this.events.on();
 		if ( !localStorage.rules ) {
-			localStorage.rules = "[]";
+			localStorage.rules = "{\"default\":{}}";
 		}
 	};
 
@@ -107,13 +107,37 @@ var makeCollect = function($){
 	doesn't interfere with itself, and add event listeners to the interface
 	*/
 	function addInterface() {
-		var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"collect_error\"></div><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><div id=\"form_buttons\"><div class=\"button_group\"><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview Rule</button><button id=\"collect_clear_form\">Clear Form</button></div><div class=\"button_group\"><button id=\"collect_load\">Load Saved Rules</button><button id=\"collect_clear\">Clear Saved Rules</button><button id=\"collect_preview_saved\">Preview Saved Rules</button></div></div></form></section><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
+		var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p><form id=\"selector_form\"><div id=\"collect_error\"></div><div id=\"form_inputs\"><p><label for=\"selector_name\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" /></p><p><label for=\"selector_string\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" /></p><p><label for=\"selector_capture\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" /></p></div><div id=\"form_buttons\"><div class=\"button_group\"><button id=\"collect_save\">Save</button><button id=\"collect_preview\">Preview Rule</button><button id=\"collect_clear_form\">Clear Form</button></div><div class=\"button_group\"><button id=\"collect_load\">Load Saved Rules</button><button id=\"collect_clear\">Clear Saved Rules</button><button id=\"collect_preview_saved\">Preview Saved Rules</button></div><div class=\"button_group\"><select id=\"collect_selector_groups\"></select><button id=\"collect_new_group\">New Group</button><button id=\"collect_delete_group\">Delete Current Group</button></div></div></form></section><div id=\"collect_messages\"></div><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
 		$(interface_html).appendTo('body');
 		$('#collect_interface, #collect_interface *').addClass('no_select');
+
+		addRuleGroups();	
 		addCSS();
 		addInterfaceEvents();
 		addOptions();
 		addPreview();
+	}
+
+	function addRuleGroups() {
+		var rules = getRules(),
+			groupSelect = document.getElementById('collect_selector_groups'),
+			option,
+			first = true;
+		if ( JSON.stringify(rules) === JSON.stringify({})) {
+			addGroup('default');
+		} else {
+			for ( var key in rules ) {
+				option = document.createElement('option');
+				option.setAttribute('value', key);
+				// set the first option to selected
+				if ( first ) {
+					option.setAttribute('selected','selected');
+					first = !first;
+				}
+				option.innerHTML = key;
+				groupSelect.appendChild(option);
+			}
+		}
 	}
 
 	/*
@@ -122,7 +146,7 @@ var makeCollect = function($){
 	function addCSS() {
 		var s = $('<style type="text/css" rel="stylesheet" id="collect-style">'),
 			css_string = ".collect_highlight{" + Collect.highlight_css + "}" +
-			".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#form_inputs {margin: 15px 0;width: 60%;display: inline-block;}#form_buttons {display: inline-block;width: 40%;}#form_buttons .button_group:first-child{border-bottom: 1px solid #aaa;}#form_buttons .button_group{display: block;padding: 5px 0;}.button_group button{margin-bottom:5px;}#control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}.attach_top #control_buttons button{border-top: 0;}#collect_interface button {line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}#saved_selectors, #desired_selectors{float: left;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #B0E69E;}.desired_selector{background: #E69E9E;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: rgba(255,215,0,0.25) !important; border: 1px solid yellow; }.query_check .query_check{background: rgba(255,215,0,0.75) !important; }.saved_preview, .saved_preview *{background: rgba(255,0,0,0.25) !important; }#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background{display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_interface{color: #000;display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;height: 35%;min-height: 200px;}#preview_background {display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_holder{height: 90%;overflow-y: scroll;}.preview_group h2{margin: 0;font-size: 1.5em;}.preview_group ul{margin: 0;padding: 5px 0;}";
+			".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#form_inputs {margin: 15px 0;width: 60%;display: inline-block;}#form_buttons {display: inline-block;width: 40%;}#form_buttons .button_group:first-child{border-bottom: 1px solid #aaa;}#form_buttons .button_group{display: block;padding: 5px 0;}.button_group button{margin-bottom:5px;}#control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}.attach_top #control_buttons button{border-top: 0;}#collect_interface button {line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}#saved_selectors, #desired_selectors{float: left;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #B0E69E;}.desired_selector{background: #E69E9E;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: rgba(255,215,0,0.25) !important; border: 1px solid yellow; }.query_check .query_check{background: rgba(255,215,0,0.75) !important; }.saved_preview, .saved_preview *{background: rgba(255,0,0,0.25) !important; }#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background{display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_interface{color: #000;display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;height: 35%;min-height: 200px;}#preview_background {display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_holder{height: 90%;overflow-y: scroll;}.preview_group h2{margin: 0;font-size: 1.5em;}.preview_group ul{margin: 0;padding: 5px 0;}#collect_messages{font-weight: bold;}";
 		s.text(css_string);
 		$('head').append(s);
 	}
@@ -190,7 +214,8 @@ var makeCollect = function($){
 			var inputs = $('#selector_form input'),
 				selector_object = {},
 				active = $('.active_selector').eq(0),
-				missing = [];
+				missing = [],
+				group = currentGroup();
 				
 			for ( var p=0, len=inputs.length; p<len; p++ ) {
 				var curr = inputs[p],
@@ -209,7 +234,7 @@ var makeCollect = function($){
 			}
 			// active isn't undefined if you're editing an already saved selector
 			if ( active.length ){
-				saveRule(selector_object, parseInt(active.data('index'), 10));
+				saveRule(group, selector_object);
 
 				// modify name, selector, and capture but not index
 				active
@@ -225,7 +250,7 @@ var makeCollect = function($){
 						.appendTo('#saved_selectors');
 				}
 			} else {
-				selector_object.index = saveRule(selector_object);
+				selector_object.index = saveRule(group, selector_object);
 				// call last because index needs to be set
 				addSavedSelector(selector_object);
 			}
@@ -241,7 +266,7 @@ var makeCollect = function($){
 			if ( isNaN(index) ){
 				return;
 			} else {
-				deleteRule(index);
+				deleteRule(currentGroup(), index);
 			}
 			
 		});
@@ -292,12 +317,14 @@ var makeCollect = function($){
 		// show saved rules in the interface
 		$('#collect_load').click(function(event){
 			event.preventDefault();
-			var rules = getRules();
+			var group = currentGroup(),
+				rules = getRules(group);
 			$('#saved_selectors').html('');
-			for ( var i=0, len=rules.length; i<len; i++){
-				var curr = rules[i];
-				if ( curr ){
-					addSavedSelector(curr);
+			if ( JSON.stringify(rules) === JSON.stringify({}) ){
+				alertMessage(group + " has no saved selectors");
+			} else {
+				for( var key in rules ){
+					addSavedSelector(rules[key]);
 				}
 			}
 		});
@@ -305,7 +332,7 @@ var makeCollect = function($){
 		// clear out localstorage
 		$('#collect_clear').click(function(){
 			event.preventDefault();
-			clearRules();
+			clearRules(currentGroup());
 			clearInterface();
 			$('#saved_selectors').html('');
 		});
@@ -313,13 +340,13 @@ var makeCollect = function($){
 		$('#collect_preview_saved').click(function(event){
 			event.preventDefault();
 			clearInterface();
-			var rules = getRules(),
+			var rules = getRules(currentGroup()),
 				outString = '';
 			$('#saved_selectors').html('');
 
-			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
+			for( var key in rules ) {
 				var curr, results, resultsLen, prop;
-				curr = rules[i];
+				curr = rules[key];
 				addSavedSelector(curr);
 				results = document.querySelectorAll(curr.selector);
 				resultsLen = results.length;
@@ -349,6 +376,26 @@ var makeCollect = function($){
 				};
 			}
 		}
+
+		$('#collect_new_group').click(function(event){
+			event.preventDefault();
+			var name = prompt("Group Name");
+			if ( name !== '' && name !== null ){
+				addGroup(name);
+			}
+		});
+
+		$('#collect_delete_group').click(function(event){
+			event.preventDefault();
+			var group = currentGroup();
+			// don't delete default group
+			if ( group !== 'default' ) {
+				clearRules(group);
+				$('#collect_selector_groups option:selected').remove();
+			} else {
+				alertMessage("Cannot delete 'default' group");
+			}
+		})
 
 		$('#selector_parts')
 			.on('click', '.child_toggle', function(event){
@@ -404,6 +451,16 @@ var makeCollect = function($){
 			});
 	}
 
+	function alertMessage(msg) {
+		var modal = document.createElement('div'),
+			messageHolder = document.getElementById('collect_messages');
+		modal.innerHTML = msg;
+		messageHolder.appendChild(modal);
+		setTimeout(function(){
+			messageHolder.removeChild(modal);
+		}, 2000);
+	}
+
 	/*
 	options modal and selection options
 	*/
@@ -442,7 +499,7 @@ var makeCollect = function($){
 	function addSavedSelector(obj){
 		var selectorString = '<span class="collect_group no_select">' + 
 			'<span class="saved_selector no_select" data-selector="' + obj.selector + 
-			'" data-capture="' + obj.capture + '" data-index="' + obj.index + '">' + obj.name + 
+			'" data-capture="' + obj.capture + '">' + obj.name + 
 			'</span><span class="deltog no_select">x</span></span>';
 		$('#saved_selectors').append(selectorString);
 	}
@@ -483,57 +540,104 @@ var makeCollect = function($){
 
 	// localstorage related functions
 
+	function addGroup(groupName){
+		if ( localStorage.rules === undefined ) {
+			localStorage.rules = "{}";
+		}
+		var rules = JSON.parse(localStorage.rules);
+		if ( rules[groupName] !== undefined ) {
+			return false;
+		} else {
+			$('#collect_selector_groups option:selected').removeProp('selected');
+			rules[groupName] = {};
+			localStorage.rules = JSON.stringify(rules);
+			var groupSelect = document.getElementById('collect_selector_groups'),
+				newGroup = document.createElement('option');
+			newGroup.setAttribute('selected','selected');				
+			newGroup.innerHTML = groupName;
+			newGroup.setAttribute('value', groupName);
+			groupSelect.appendChild(newGroup);
+			return true;
+		}
+	}
+
+	function currentGroup(){
+		var currGroup = $('#collect_selector_groups option:selected');
+		if ( currGroup.length ) {
+			return currGroup.eq(0).val();
+		} else {
+			// undecided on how to handle this yet
+			return '';
+		}
+	}
+
 	/*
 	saves @rule to localStorage.rules array
-	if @index is included, override current rule saved at @index, otherwise
-	append to end of array
-	returns index of rule in localStorage.rules
 	*/
-	function saveRule(rule, index){
-		var rules = getRules(),
-			newIndex;
-		if ( index ) {
-			rules[index] = rule;
-			newIndex = index;
+	function saveRule(group, rule){
+	    // should this break if group isn't passed?
+	    if ( arguments.length !== 2) {
+	        return false;
+	    }
+	    var rules = getRules(group),
+	    	active = $('.active_selector');
+	    if ( active.length ) {
+	    	var activeName = active.eq(0).text();
+	    	if ( activeName !== rule.name ){
+	    		delete rules[activeName];
+	    	}
+	    }
+	    
+	    rules[rule.name] = rule;
+	    setRules(group, rules);
+	    return true;
+	}
+
+	// group argument optional, if not included return all rules
+	function getRules(group){
+		if ( localStorage.rules === undefined ) {
+			localStorage.rules = "{}";
+		}
+		var rules = JSON.parse(localStorage.rules);
+		if ( group === undefined ) {
+			return rules
 		} else {
-			// grab before pushing since its 0 based
-			newIndex = rules.length;
-			rule.index = rule.index || newIndex;
-			rules.push(rule);
-		}
-		setRules(rules);
-		return newIndex;
-	}
-
-	function getRules(){
-		return JSON.parse(localStorage.rules);
-	}
-
-	function setRules(arr){
-		localStorage.rules = JSON.stringify(arr);
-	}
-
-	function deleteRule(index){
-		var rules = getRules(),
-			rulesLen = rules.length,
-			newRules = [];
-		for ( var i=0; i<rulesLen; i++ ) {
-			var curr = rules[i];
-			if ( index === i ){
-				$(curr.selector).removeClass('saved_preview');
-				continue;
-			} else {
-				// decrement index for values after removed index
-				curr.index = (i < index) ? i : (i-1) ;
-				newRules.push(curr);
+			// create group if it doesn't exist
+			if ( rules[group] === undefined ) {
+				rules[group] = {};
+				localStorage.rules = JSON.stringify(rules);
 			}
+			return rules[group];	
 		}
-		setRules(newRules);
 	}
 
-	function clearRules(){
-		delete localStorage.rules;
-		localStorage.rules = "[]";
+	// only used by other localStorage calls
+	function setRules(group, obj){
+		var rules = getRules();
+		rules[group] = obj;
+		localStorage.rules = JSON.stringify(rules);
+	}
+
+	function deleteRule(group, name){
+	    if ( arguments.length !== 2) {
+	        return false;
+	    }
+	    var rules = getRules(group),
+	        returnVal = true;
+	    if ( rules[name] ) {
+	        $(rules[name].selector).removeClass('saved_preview');
+	        delete rules[name];
+	    } else {
+	        returnVal = false;
+	    }
+	    setRules(group, rules);
+	    return returnVal;
+	}
+
+	function clearRules(group){
+		var currGroups = JSON.parse(localStorage.rules);
+		delete currGroups[group];
+		localStorage.rules = JSON.stringify(currGroups);
 	}
 
 	/*

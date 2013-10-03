@@ -19,7 +19,7 @@ var makeCollect = function($){
 		addInterface();
 		this.events.on();
 		if ( !localStorage.rules ) {
-			localStorage.rules = "[]";
+			localStorage.rules = "{\"default\":{}}";
 		}
 	};
 
@@ -110,10 +110,34 @@ var makeCollect = function($){
 		var interface_html = "{{collect.html}}";
 		$(interface_html).appendTo('body');
 		$('#collect_interface, #collect_interface *').addClass('no_select');
+
+		addRuleGroups();	
 		addCSS();
 		addInterfaceEvents();
 		addOptions();
 		addPreview();
+	}
+
+	function addRuleGroups() {
+		var rules = getRules(),
+			groupSelect = document.getElementById('collect_selector_groups'),
+			option,
+			first = true;
+		if ( JSON.stringify(rules) === JSON.stringify({})) {
+			addGroup('default');
+		} else {
+			for ( var key in rules ) {
+				option = document.createElement('option');
+				option.setAttribute('value', key);
+				// set the first option to selected
+				if ( first ) {
+					option.setAttribute('selected','selected');
+					first = !first;
+				}
+				option.innerHTML = key;
+				groupSelect.appendChild(option);
+			}
+		}
 	}
 
 	/*
@@ -190,7 +214,8 @@ var makeCollect = function($){
 			var inputs = $('#selector_form input'),
 				selector_object = {},
 				active = $('.active_selector').eq(0),
-				missing = [];
+				missing = [],
+				group = currentGroup();
 				
 			for ( var p=0, len=inputs.length; p<len; p++ ) {
 				var curr = inputs[p],
@@ -209,7 +234,7 @@ var makeCollect = function($){
 			}
 			// active isn't undefined if you're editing an already saved selector
 			if ( active.length ){
-				saveRule(selector_object, parseInt(active.data('index'), 10));
+				saveRule(group, selector_object);
 
 				// modify name, selector, and capture but not index
 				active
@@ -225,7 +250,7 @@ var makeCollect = function($){
 						.appendTo('#saved_selectors');
 				}
 			} else {
-				selector_object.index = saveRule(selector_object);
+				selector_object.index = saveRule(group, selector_object);
 				// call last because index needs to be set
 				addSavedSelector(selector_object);
 			}
@@ -241,7 +266,7 @@ var makeCollect = function($){
 			if ( isNaN(index) ){
 				return;
 			} else {
-				deleteRule(index);
+				deleteRule(currentGroup(), index);
 			}
 			
 		});
@@ -292,12 +317,14 @@ var makeCollect = function($){
 		// show saved rules in the interface
 		$('#collect_load').click(function(event){
 			event.preventDefault();
-			var rules = getRules();
+			var group = currentGroup(),
+				rules = getRules(group);
 			$('#saved_selectors').html('');
-			for ( var i=0, len=rules.length; i<len; i++){
-				var curr = rules[i];
-				if ( curr ){
-					addSavedSelector(curr);
+			if ( JSON.stringify(rules) === JSON.stringify({}) ){
+				alertMessage(group + " has no saved selectors");
+			} else {
+				for( var key in rules ){
+					addSavedSelector(rules[key]);
 				}
 			}
 		});
@@ -305,7 +332,7 @@ var makeCollect = function($){
 		// clear out localstorage
 		$('#collect_clear').click(function(){
 			event.preventDefault();
-			clearRules();
+			clearRules(currentGroup());
 			clearInterface();
 			$('#saved_selectors').html('');
 		});
@@ -313,13 +340,13 @@ var makeCollect = function($){
 		$('#collect_preview_saved').click(function(event){
 			event.preventDefault();
 			clearInterface();
-			var rules = getRules(),
+			var rules = getRules(currentGroup()),
 				outString = '';
 			$('#saved_selectors').html('');
 
-			for( var i=0, ruleLen = rules.length; i<ruleLen; i++ ) {
+			for( var key in rules ) {
 				var curr, results, resultsLen, prop;
-				curr = rules[i];
+				curr = rules[key];
 				addSavedSelector(curr);
 				results = document.querySelectorAll(curr.selector);
 				resultsLen = results.length;
@@ -349,6 +376,26 @@ var makeCollect = function($){
 				};
 			}
 		}
+
+		$('#collect_new_group').click(function(event){
+			event.preventDefault();
+			var name = prompt("Group Name");
+			if ( name !== '' && name !== null ){
+				addGroup(name);
+			}
+		});
+
+		$('#collect_delete_group').click(function(event){
+			event.preventDefault();
+			var group = currentGroup();
+			// don't delete default group
+			if ( group !== 'default' ) {
+				clearRules(group);
+				$('#collect_selector_groups option:selected').remove();
+			} else {
+				alertMessage("Cannot delete 'default' group");
+			}
+		})
 
 		$('#selector_parts')
 			.on('click', '.child_toggle', function(event){
@@ -404,6 +451,16 @@ var makeCollect = function($){
 			});
 	}
 
+	function alertMessage(msg) {
+		var modal = document.createElement('div'),
+			messageHolder = document.getElementById('collect_messages');
+		modal.innerHTML = msg;
+		messageHolder.appendChild(modal);
+		setTimeout(function(){
+			messageHolder.removeChild(modal);
+		}, 2000);
+	}
+
 	/*
 	options modal and selection options
 	*/
@@ -442,7 +499,7 @@ var makeCollect = function($){
 	function addSavedSelector(obj){
 		var selectorString = '<span class="collect_group no_select">' + 
 			'<span class="saved_selector no_select" data-selector="' + obj.selector + 
-			'" data-capture="' + obj.capture + '" data-index="' + obj.index + '">' + obj.name + 
+			'" data-capture="' + obj.capture + '">' + obj.name + 
 			'</span><span class="deltog no_select">x</span></span>';
 		$('#saved_selectors').append(selectorString);
 	}
@@ -483,57 +540,104 @@ var makeCollect = function($){
 
 	// localstorage related functions
 
+	function addGroup(groupName){
+		if ( localStorage.rules === undefined ) {
+			localStorage.rules = "{}";
+		}
+		var rules = JSON.parse(localStorage.rules);
+		if ( rules[groupName] !== undefined ) {
+			return false;
+		} else {
+			$('#collect_selector_groups option:selected').removeProp('selected');
+			rules[groupName] = {};
+			localStorage.rules = JSON.stringify(rules);
+			var groupSelect = document.getElementById('collect_selector_groups'),
+				newGroup = document.createElement('option');
+			newGroup.setAttribute('selected','selected');				
+			newGroup.innerHTML = groupName;
+			newGroup.setAttribute('value', groupName);
+			groupSelect.appendChild(newGroup);
+			return true;
+		}
+	}
+
+	function currentGroup(){
+		var currGroup = $('#collect_selector_groups option:selected');
+		if ( currGroup.length ) {
+			return currGroup.eq(0).val();
+		} else {
+			// undecided on how to handle this yet
+			return '';
+		}
+	}
+
 	/*
 	saves @rule to localStorage.rules array
-	if @index is included, override current rule saved at @index, otherwise
-	append to end of array
-	returns index of rule in localStorage.rules
 	*/
-	function saveRule(rule, index){
-		var rules = getRules(),
-			newIndex;
-		if ( index ) {
-			rules[index] = rule;
-			newIndex = index;
+	function saveRule(group, rule){
+	    // should this break if group isn't passed?
+	    if ( arguments.length !== 2) {
+	        return false;
+	    }
+	    var rules = getRules(group),
+	    	active = $('.active_selector');
+	    if ( active.length ) {
+	    	var activeName = active.eq(0).text();
+	    	if ( activeName !== rule.name ){
+	    		delete rules[activeName];
+	    	}
+	    }
+	    
+	    rules[rule.name] = rule;
+	    setRules(group, rules);
+	    return true;
+	}
+
+	// group argument optional, if not included return all rules
+	function getRules(group){
+		if ( localStorage.rules === undefined ) {
+			localStorage.rules = "{}";
+		}
+		var rules = JSON.parse(localStorage.rules);
+		if ( group === undefined ) {
+			return rules
 		} else {
-			// grab before pushing since its 0 based
-			newIndex = rules.length;
-			rule.index = rule.index || newIndex;
-			rules.push(rule);
-		}
-		setRules(rules);
-		return newIndex;
-	}
-
-	function getRules(){
-		return JSON.parse(localStorage.rules);
-	}
-
-	function setRules(arr){
-		localStorage.rules = JSON.stringify(arr);
-	}
-
-	function deleteRule(index){
-		var rules = getRules(),
-			rulesLen = rules.length,
-			newRules = [];
-		for ( var i=0; i<rulesLen; i++ ) {
-			var curr = rules[i];
-			if ( index === i ){
-				$(curr.selector).removeClass('saved_preview');
-				continue;
-			} else {
-				// decrement index for values after removed index
-				curr.index = (i < index) ? i : (i-1) ;
-				newRules.push(curr);
+			// create group if it doesn't exist
+			if ( rules[group] === undefined ) {
+				rules[group] = {};
+				localStorage.rules = JSON.stringify(rules);
 			}
+			return rules[group];	
 		}
-		setRules(newRules);
 	}
 
-	function clearRules(){
-		delete localStorage.rules;
-		localStorage.rules = "[]";
+	// only used by other localStorage calls
+	function setRules(group, obj){
+		var rules = getRules();
+		rules[group] = obj;
+		localStorage.rules = JSON.stringify(rules);
+	}
+
+	function deleteRule(group, name){
+	    if ( arguments.length !== 2) {
+	        return false;
+	    }
+	    var rules = getRules(group),
+	        returnVal = true;
+	    if ( rules[name] ) {
+	        $(rules[name].selector).removeClass('saved_preview');
+	        delete rules[name];
+	    } else {
+	        returnVal = false;
+	    }
+	    setRules(group, rules);
+	    return returnVal;
+	}
+
+	function clearRules(group){
+		var currGroups = JSON.parse(localStorage.rules);
+		delete currGroups[group];
+		localStorage.rules = JSON.stringify(currGroups);
 	}
 
 	/*
