@@ -127,6 +127,9 @@ var makeCollect = function($){
 			addGroup('default');
 		} else {
 			for ( var key in rules ) {
+				if ( key === ""){
+					continue;
+				}
 				option = document.createElement('option');
 				option.setAttribute('value', key);
 				// set the first option to selected
@@ -138,7 +141,21 @@ var makeCollect = function($){
 				groupSelect.appendChild(option);
 			}
 		}
+		loadSavedSelectors();
 	}
+
+	function loadSavedSelectors(){
+			var group = currentGroup(),
+				rules = getRules(group);
+			$('#saved_selectors').html('');
+			if ( JSON.stringify(rules) === JSON.stringify({}) ){
+				alertMessage(group + " has no saved selectors");
+			} else {
+				for( var key in rules ){
+					addSavedSelector(rules[key]);
+				}
+			}
+		}
 
 	/*
 	create a style element for the collect interface and insert it into the head
@@ -178,7 +195,9 @@ var makeCollect = function($){
 			clearClass('query_check');
 			clearClass('collect_highlight');
 			clearClass('saved_preview');
-			$('#collect_interface, #options_interface, #collect-style, #options_background').remove();
+			var elesToRemove = '#collect_interface, #options_interface, #collect-style,' +
+				' #options_background, #preview_interface, #preview_background';
+			$(elesToRemove).remove();
 		});
 
 		// toggle interface between top and bottom of screen
@@ -314,20 +333,6 @@ var makeCollect = function($){
 			clearInterface();
 		});
 
-		// show saved rules in the interface
-		$('#collect_load').click(function(event){
-			event.preventDefault();
-			var group = currentGroup(),
-				rules = getRules(group);
-			$('#saved_selectors').html('');
-			if ( JSON.stringify(rules) === JSON.stringify({}) ){
-				alertMessage(group + " has no saved selectors");
-			} else {
-				for( var key in rules ){
-					addSavedSelector(rules[key]);
-				}
-			}
-		});
 
 		// clear out localstorage
 		$('#collect_clear').click(function(){
@@ -383,6 +388,8 @@ var makeCollect = function($){
 			if ( name !== '' && name !== null ){
 				addGroup(name);
 			}
+			$('#saved_selectors').html('');
+			clearInterface();
 		});
 
 		$('#collect_delete_group').click(function(event){
@@ -392,9 +399,16 @@ var makeCollect = function($){
 			if ( group !== 'default' ) {
 				clearRules(group);
 				$('#collect_selector_groups option:selected').remove();
+				// when deleting a group, set the default group to being selected
+				//$('#collect_selector_groups option').get(0).selected = true;
+				loadSavedSelectors();
 			} else {
 				alertMessage("Cannot delete 'default' group");
 			}
+		});
+
+		$('#collect_selector_groups').on('change', function(event){
+			loadSavedSelectors();
 		})
 
 		$('#selector_parts')
@@ -548,7 +562,7 @@ var makeCollect = function($){
 		if ( rules[groupName] !== undefined ) {
 			return false;
 		} else {
-			$('#collect_selector_groups option:selected').removeProp('selected');
+			$('#collect_selector_groups option:selected').prop('selected', 'false');
 			rules[groupName] = {};
 			localStorage.rules = JSON.stringify(rules);
 			var groupSelect = document.getElementById('collect_selector_groups'),
