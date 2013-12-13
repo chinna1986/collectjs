@@ -1,49 +1,53 @@
 <div class="attach_bottom" id="collect_interface">
 	<section id="selector_results">
-		<h2 >Selector</h2>
-		<p id="selector_parts"></p>
-		<p id="selector_count"></p>
-		<p id="selector_text"></p>
-		<form id="selector_form">
+		<div>
+			<h2 >Selector</h2>
+			<p id="selector_parts"></p>
+			<p id="selector_count"></p>
+			<p id="selector_text"></p>
+		</div>
+		<div class="collectColumn">
 			<div id="collect_error"></div>
-			<div id="form_inputs">
-				<p>
-					<label for="selector_name">Name:</label>
-					<input name="name" id="selector_name" val="" />
-				</p>
-				<p>
-					<label for="selector_string">Selector:</label>
-					<input name="selector" id="selector_string" val="" />
-				</p>
-				<p>
-					<label for="selector_capture">Capture:</label>
-					<input name="capture" id="selector_capture" val="" />
-				</p>
-			</div>
-			<div id="form_buttons">
-				<div class="button_group">
-					<button id="collect_save">Save</button>
+			<form id="selector_form">
+				<div id="form_inputs">
+					<p>
+						<label for="selector_name">Name:</label>
+						<input name="name" id="selector_name" val="" />
+					</p>
+					<p>
+						<label for="selector_string">Selector:</label>
+						<input name="selector" id="selector_string" val="" />
+					</p>
+					<p>
+						<label for="selector_capture">Capture:</label>
+						<input name="capture" id="selector_capture" val="" />
+					</p>
+				</div>
+			</form>
+			<div class="button_group">
+					<button id="collect_save" class="pro">Save Rule</button>
 					<button id="collect_preview">Preview Rule</button>
-					<button id="collect_clear_form">Clear Form</button>
-				</div>
-				<div class="button_group">
-					<button id="collect_clear">Clear Saved Rules</button>
-					<button id="collect_preview_saved">Preview Saved Rules</button>
-				</div>
-				<div class="button_group">
-					<select id="collect_selector_groups"></select>
-					<button id="collect_new_group">New Group</button>
-					<button id="collect_delete_group">Delete Current Group</button>
-					
-				</div>
+					<button id="collect_clear_form" class="con">Clear Form</button>
 			</div>
-		</form>
-	</section>
-	<div id="collect_messages"></div>
+		</div>
+		<div class="collectColumn">
+			<div class="button_group">
+					Group: <select id="collect_selector_groups"></select>
+					<button id="collect_new_group">New Group</button>
+					<button id="collect_preview_saved">Preview Group Rules</button>
+					<button id="collect_delete_group" class="con">Delete Group</button>
+			</div>
+			<div class="button_group">				
+				<button id="collect_upload_group" class="pro">Upload Group</button>
+			</div>					
+			<div id="collect_messages"></div>
 	<div id="collect_selectors">
 		<section id="desired_selectors"></section>
 		<section id="saved_selectors"></section>
 	</div>
+	
+		</div>
+	</section>
 	<div id="control_buttons">
 		<button id="open_options">Options</button>
 		<button id="move_position">Move to Top</button>

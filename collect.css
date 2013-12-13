@@ -53,20 +53,9 @@ included to prevent possible selector collisions on sites the script is run on
 
 #form_inputs {
 	margin: 15px 0;
-	width: 60%;
-	display: inline-block;
 }
 
-#form_buttons {
-	display: inline-block;
-	width: 40%;
-}
-
-#form_buttons .button_group:first-child{
-	border-bottom: 1px solid #aaa;
-}
-
-#form_buttons .button_group{
+.button_group{
 	display: block;
 	padding: 5px 0;
 }
@@ -321,4 +310,25 @@ included to prevent possible selector collisions on sites the script is run on
 
 #collect_messages{
 	font-weight: bold;
+}
+
+#collect_interface .con{
+	color: #fff;
+	background: #F05D71;
+	border-color: #F05D71;
+}
+
+#collect_interface .pro{
+	color: #fff;
+	background: #0E965D;
+	border-color: #0E965D;
+}
+
+.collectColumn{
+	display: inline-block;
+	width: 50%;
+}
+
+.button_group button{
+	margin: 0 5px;
 }

@@ -16,11 +16,12 @@ var makeCollect = function($){
 			this.check_css = args.check_css || this.check_css;
 			this.elements = args.elements || this.elements;
 		}
-		addInterface();
-		this.events.on();
+		// default group is no localStorage.rules
 		if ( !localStorage.rules ) {
 			localStorage.rules = "{\"default\":{}}";
 		}
+		addInterface();
+		this.events.on();
 	};
 
 	Collect.events = (function(){
@@ -69,10 +70,14 @@ var makeCollect = function($){
 		return event_obj;
 	})();
 
-	// not yet implemented
+
+	/********************
+		AJAX functions
+	********************/
 	Collect.load = function(json_url){
 		$.ajax({
-			dataType: "jsonp",
+			type: "GET",
+			dataType: "json",
 			url: json_url,
 			success: function(data){
 				// loads a json object, array of desired properties to collect
@@ -93,6 +98,21 @@ var makeCollect = function($){
 			}
 		});
 	};
+
+	Collect.upload = function(json_url, uploadData){
+		$.ajax({
+			type: "POST",
+			dataType: "json",
+			data: JSON.stringify(uploadData),
+			url: json_url,
+			success: function(data){
+					
+			},
+			error: function(){
+
+			}
+		});	
+	}
 
 	/***************
 	END COLLECT OBJECT
@@ -117,45 +137,6 @@ var makeCollect = function($){
 		addOptions();
 		addPreview();
 	}
-
-	function addRuleGroups() {
-		var rules = getRules(),
-			groupSelect = document.getElementById('collect_selector_groups'),
-			option,
-			first = true;
-		if ( JSON.stringify(rules) === JSON.stringify({})) {
-			addGroup('default');
-		} else {
-			for ( var key in rules ) {
-				if ( key === ""){
-					continue;
-				}
-				option = document.createElement('option');
-				option.setAttribute('value', key);
-				// set the first option to selected
-				if ( first ) {
-					option.setAttribute('selected','selected');
-					first = !first;
-				}
-				option.innerHTML = key;
-				groupSelect.appendChild(option);
-			}
-		}
-		loadSavedSelectors();
-	}
-
-	function loadSavedSelectors(){
-			var group = currentGroup(),
-				rules = getRules(group);
-			$('#saved_selectors').html('');
-			if ( JSON.stringify(rules) === JSON.stringify({}) ){
-				alertMessage(group + " has no saved selectors");
-			} else {
-				for( var key in rules ){
-					addSavedSelector(rules[key]);
-				}
-			}
-		}
 
 	/*
 	create a style element for the collect interface and insert it into the head
@@ -240,7 +221,6 @@ var makeCollect = function($){
 				var curr = inputs[p],
 					name = curr.getAttribute('name') || 'noname',
 					value = curr.value;
-
 				if ( value === '' ) {
 					missing.push(name);
 				} else {
@@ -304,6 +284,26 @@ var makeCollect = function($){
 			}
 		}
 		
+		// sets the fields in the #selector_form given an element 
+		// that represents a selector
+		function loadSelectorGroup(ele){
+			var _this = $(ele),
+				selector = decodeURIComponent(_this.data('selector').replace(/\+/g, ' ')),
+				name = _this.text(),
+				capture = _this.data('capture');
+			$('#selector_name').val(name);
+			$('#selector_string').val(selector);
+			$('#selector_capture').val(capture);
+			if ( selector !== '' ){
+				selectorInterface(selector);
+				clearClass("query_check");
+				selectorElements(selector).addClass("query_check");
+			}
+			clearClass('active_selector');
+			_this.addClass('active_selector');
+		}
+
+
 		// output a preview of current selector form values to the preview modal
 		$('#collect_preview').click(function(event){
 			event.preventDefault();
@@ -331,15 +331,6 @@ var makeCollect = function($){
 		$('#collect_clear_form').click(function(event){
 			event.preventDefault();
 			clearInterface();
-		});
-
-
-		// clear out localstorage
-		$('#collect_clear').click(function(){
-			event.preventDefault();
-			clearRules(currentGroup());
-			clearInterface();
-			$('#saved_selectors').html('');
 		});
 
 		$('#collect_preview_saved').click(function(event){
@@ -387,17 +378,17 @@ var makeCollect = function($){
 			var name = prompt("Group Name");
 			if ( name !== '' && name !== null ){
 				addGroup(name);
+				$('#saved_selectors').html('');
+				clearInterface();
 			}
-			$('#saved_selectors').html('');
-			clearInterface();
 		});
 
 		$('#collect_delete_group').click(function(event){
 			event.preventDefault();
 			var group = currentGroup();
+			clearRules(group);
 			// don't delete default group
 			if ( group !== 'default' ) {
-				clearRules(group);
 				$('#collect_selector_groups option:selected').remove();
 				// when deleting a group, set the default group to being selected
 				//$('#collect_selector_groups option').get(0).selected = true;
@@ -405,6 +396,17 @@ var makeCollect = function($){
 			} else {
 				alertMessage("Cannot delete 'default' group");
 			}
+		});
+
+		$('#collect_upload_group').click(function(event){
+			event.preventDefault();
+			var group = currentGroup(),
+				rules = getRules(group);
+			var uploadObject = {
+				host: location.host,
+				rules: rules,
+				name: group
+			};
 		});
 
 		$('#collect_selector_groups').on('change', function(event){
@@ -518,26 +520,6 @@ var makeCollect = function($){
 		$('#saved_selectors').append(selectorString);
 	}
 
-	// sets the fields in the #selector_form given an element 
-	// that represents a selector
-	function loadSelectorGroup(ele){
-		var _this = $(ele),
-			selector = decodeURIComponent(_this.data('selector')
-				.replace(/\+/g, ' ')),
-			name = _this.text(),
-			capture = _this.data('capture');
-		$('#selector_name').val(name);
-		$('#selector_string').val(selector);
-		$('#selector_capture').val(capture);
-		if ( selector !== '' ){
-			selectorInterface(selector);
-			clearClass("query_check");
-			selectorElements(selector).addClass("query_check");
-		}
-		clearClass('active_selector');
-		_this.addClass('active_selector');
-	}
-
 	function addPseudoElement(pseudoSelector, ele){
 		var _this = $(ele),
 			parent = _this.parents('.selector_group'),
@@ -554,6 +536,43 @@ var makeCollect = function($){
 
 	// localstorage related functions
 
+	/*********************
+		group functions
+	*********************/
+	function addRuleGroups() {
+		var rules = getRules(),
+			groupSelect = document.getElementById('collect_selector_groups'),
+			option,
+			first = true;
+		if ( JSON.stringify(rules) === JSON.stringify({})) {
+			addGroup('default');
+		} else {
+			for ( var key in rules ) {
+				option = newGroupOption(key, first);
+				// set the first option to selected
+				if ( first ) {
+					first = !first;
+				}
+				groupSelect.appendChild(option);
+			}
+		}
+		loadSavedSelectors();
+	}
+
+	function loadSavedSelectors(){
+		var group = currentGroup(),
+			rules = getRules(group);
+		$('#saved_selectors').html('');
+		if ( JSON.stringify(rules) === JSON.stringify({}) ){
+			alertMessage(group + " has no saved selectors");
+		} else {
+			for( var key in rules ){
+				addSavedSelector(rules[key]);
+			}
+		}
+	}
+
+
 	function addGroup(groupName){
 		if ( localStorage.rules === undefined ) {
 			localStorage.rules = "{}";
@@ -566,13 +585,20 @@ var makeCollect = function($){
 			rules[groupName] = {};
 			localStorage.rules = JSON.stringify(rules);
 			var groupSelect = document.getElementById('collect_selector_groups'),
-				newGroup = document.createElement('option');
-			newGroup.setAttribute('selected','selected');				
-			newGroup.innerHTML = groupName;
-			newGroup.setAttribute('value', groupName);
+				newGroup = newGroupOption(groupName, true);
 			groupSelect.appendChild(newGroup);
 			return true;
 		}
+	}
+
+	function newGroupOption(name, selected){
+		var option = document.createElement('option');
+		if ( selected ) {
+			option.setAttribute('selected','selected');
+		}
+		option.innerHTML = name;
+		option.setAttribute('value', name);
+		return option
 	}
 
 	function currentGroup(){
@@ -585,9 +611,11 @@ var makeCollect = function($){
 		}
 	}
 
-	/*
-	saves @rule to localStorage.rules array
-	*/
+	/*********************
+		localStorage
+	*********************/
+	
+	// saves @rule to localStorage.rules array
 	function saveRule(group, rule){
 	    // should this break if group isn't passed?
 	    if ( arguments.length !== 2) {
@@ -632,6 +660,7 @@ var makeCollect = function($){
 		localStorage.rules = JSON.stringify(rules);
 	}
 
+	// delete @name rule from @group
 	function deleteRule(group, name){
 	    if ( arguments.length !== 2) {
 	        return false;
@@ -654,6 +683,10 @@ var makeCollect = function($){
 		localStorage.rules = JSON.stringify(currGroups);
 	}
 
+
+	/*********************
+		selectors/rules
+	*********************/
 	/*
 	takes an element and applies the rules based on the options, returning true if it passes
 	all requirements
@@ -685,12 +718,9 @@ var makeCollect = function($){
 			togChildren = groups.eq(g).children('.toggleable');
 			for ( var i=0, childrenLen=togChildren.length; i<childrenLen; i++ ) {
 				var curr = togChildren.eq(i);
-				// blank if
-				// if index is undefined, elements with class off will add empty
-				// string, but when index is defined, we want all elements
-				//included
-				group_selector += (curr.hasClass('off') && 
-					index===undefined) ? '' : curr.text();
+				// if index is undefined and element has class .off, use add empty string,
+				// but when index is defined, we want all elements included
+				group_selector += (curr.hasClass('off') && index===undefined) ? '' : curr.text();
 			}
 			if ( group_selector !== '' ) {
 				group_text.push(group_selector);
@@ -1005,17 +1035,13 @@ var makeCollect = function($){
 	returns the html for a selector group
 	*/
 	Selector.prototype.toHTML = function( on ){
-		function wrap_toggleable( to_wrap ) {
-			return "<span class='toggleable no_select " + (on ? "":"off") + 
-				"'>" + to_wrap + "</span>";
-		}
-		var selector = wrap_toggleable(this.tag.toLowerCase());
+		var selector = wrap_toggleable(this.tag.toLowerCase(), on);
 		if ( this.id ) {
-			selector += wrap_toggleable(this.id);
+			selector += wrap_toggleable(this.id, on);
 		}
 		if ( this.classes.length ) {
 			for ( var pos=0, len=this.classes.length; pos < len; pos++ ) {
-				selector += wrap_toggleable(this.classes[pos]);
+				selector += wrap_toggleable(this.classes[pos], on);
 			}
 		}
 
@@ -1029,6 +1055,11 @@ var makeCollect = function($){
 				"</span>" + 
 			"</span>";
 	};
+
+	function wrap_toggleable(to_wrap, on) {
+		return "<span class='toggleable no_select " + (on ? "":"off") + 
+			"'>" + to_wrap + "</span>";
+	}
 
 	/********************
 	END SELECTOR OBJECT
@@ -1046,18 +1077,18 @@ if (window.jQuery === undefined || window.jQuery.fn.jquery < v) {
 				this.readyState === "loaded" || 
 				this.readyState === "complete")) {
 			done = true;
-			// because jquery is attached to widnow, 
+			// because jquery is attached to window, 
 			// noconflict to prevent interfering with
 			// native page's jquery
-			var jQuery191 = jQuery.noConflict();
-			window.collect = makeCollect(jQuery191);
-			window.collect.setup();
+			var jQuery191 = jQuery.noConflict(),
+				collect = makeCollect(jQuery191);
+			collect.setup();
 		}
 	};
 
 	document.getElementsByTagName("head")[0].appendChild(script);
 } else {
-	window.collect = makeCollect(jQuery);
-	window.collect.setup();
+	var collect = makeCollect(jQuery);
+	collect.setup();
 }
 })();
