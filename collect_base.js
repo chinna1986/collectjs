@@ -22,7 +22,7 @@ var makeCollect = function($){
         }
         addInterface();
         this.events.permanent();
-        this.events.on();
+        this.events.on(); 
     };
 
     Collect.events = (function(){
@@ -108,6 +108,11 @@ var makeCollect = function($){
             updateInterface();
         }
 
+        function blurUpdate(event){
+            event.preventDefault();
+            updateInterface();
+        }
+
         function previewSelectorHover(event){
             var index = 0,
                 elem = this,
@@ -151,7 +156,8 @@ var makeCollect = function($){
                 var curr = inputs[p],
                     name = curr.getAttribute('name') || 'noname',
                     value = curr.value;
-                if ( value === '' ) {
+                // hardcoded to allow index to be empty
+                if ( value === '' && name != 'index' ) {
                     missing.push(name);
                 } else {
                     selector_object[name] = value;
@@ -169,6 +175,7 @@ var makeCollect = function($){
                 active
                     .data('selector', selector_object.selector)
                     .data('capture', selector_object.capture)
+                    .data('index', selector_object.index)
                     .text(selector_object.name)
                     .removeClass('active_selector');
                 // move to saved_selectors
@@ -251,10 +258,14 @@ var makeCollect = function($){
             var _this = $(ele),
                 selector = decodeURIComponent(_this.data('selector').replace(/\+/g, ' ')),
                 name = _this.text(),
+                index = _this.data('index'),
                 capture = _this.data('capture');
+            console.log(_this);
+            console.log("loading index: ", index);
             $('#selector_name').val(name);
             $('#selector_string').val(selector);
             $('#selector_capture').val(capture);
+            $('#selector_index').val(index);
             if ( selector !== '' ){
                 selectorInterface(selector);
                 clearClass("query_check");
@@ -332,13 +343,14 @@ var makeCollect = function($){
         function uploadGroupEvent(event){
             event.preventDefault();
             var group = currentGroup(),
-                rules = getRules(group);
-            var uploadObject = {
-                host: location.host,
-                rules: rules,
-                name: group
-            };
-            console.log(uploadObject);
+                rules = getRules(group),
+                uploadObject = {
+                    host: location.host,
+                    rules: rules,
+                    name: group
+                },
+                uploadJSON = JSON.stringify(uploadObject);
+            console.log(uploadJSON);
             alertMessage("not yet implemented, check console to see what would be sent");
         }
 
@@ -408,6 +420,8 @@ var makeCollect = function($){
                     .on('click', '.nthchild', addPseudoChild)
                     .on('click', '.nthtype', addPseudoType);
 
+                $('#selector_index').on('blur', blurUpdate);
+
                 $('#saved_selectors').on('click', '.saved_selector', clearOrLoad);
                 $('#desired_selectors').on('click', '.desired_selector', clearOrLoad);
 
@@ -429,6 +443,8 @@ var makeCollect = function($){
                     .off('click', '.deltog', removeSelectorGroup)
                     .off('click', '.nthchild', addPseudoChild)
                     .off('click', '.nthtype', addPseudoType);
+
+                $('#selector_index').off('blur', blurUpdate);
 
                 $('#saved_selectors').off('click', '.saved_selector', clearOrLoad);
                 $('#desired_selectors').off('click', '.desired_selector', clearOrLoad);
@@ -577,7 +593,7 @@ var makeCollect = function($){
     function addSavedSelector(obj){
         var selectorString = '<span class="collect_group no_select">' + 
             '<span class="saved_selector no_select" data-selector="' + obj.selector + 
-            '" data-capture="' + obj.capture + '">' + obj.name + 
+            '" data-capture="' + obj.capture + '" data-index="' + obj.index + '"">' + obj.name + 
             '</span><span class="deltog no_select">x</span></span>';
         $('#saved_selectors').append(selectorString);
     }
@@ -827,6 +843,43 @@ var makeCollect = function($){
             });
         }
 
+        /*
+        uses #seletor_index to exclude values from getting query_check
+        positive values remove elements from beginning of the eles array
+        negative values remove elements from the end of the eles array
+        */
+        function addQueryCheck(eles){
+            var index = $("#selector_index").val(),
+                indexInt = parseInt(index, 10),
+                newEles,
+                low = 0,
+                high = eles.length;
+            // if neither low or high are defined, add to all elements
+            if ( isNaN(indexInt) ) {
+                eles.addClass("query_check");
+                return eles;
+            } else {
+                // if indexInt is negative, add the array length to get the desired value
+                // if indexInt is >= eles.length, set 
+                if ( indexInt < 0 ) {
+                    // modulo in case the negative number is greater than eles.length
+                    // because javascript negative number modulo is broken, don't need to subtract
+                    // the value to get the correct negative number
+                    high += (indexInt % high );
+                } else if ( indexInt >= originalLength ) {
+                    low = originalLength - 1;
+                } else {
+                    low = indexInt;
+                }
+                newEles = [];
+                for ( var i = low; i<high; i++ ) {
+                    eles.eq(i).addClass("query_check");
+                    newEles.push(eles.get(i));
+                }
+                return newEles;
+            }
+        }
+
         return function(){
             var selector = baseSelector(),
                 selected;
@@ -840,7 +893,8 @@ var makeCollect = function($){
                 $('#selector_text').html("");
             } else {
                 selected = selectorElements(selector);
-                selected.addClass('query_check');
+                selected = addQueryCheck(selected);
+                //selected.addClass('query_check');
                 $('#selector_count').html("Count: " + selected.length);
                 $('#selector_string').val(selector);
                 var text = selectorText(selected[0]);
