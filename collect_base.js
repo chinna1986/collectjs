@@ -308,7 +308,8 @@ var makeCollect = function($){
                     return ele.innerText;
                 };
             } else if (curr.capture.indexOf("attr-")===0) {
-                var attribute = curr.capture.split('-')[1];
+                // return substring after first hyphen so that it works with data- attributes
+                var attribute = curr.capture.slice(curr.capture.indexOf("-")+1);
                 return function(ele){
                         return ele.getAttribute(attribute);
                 };
@@ -959,12 +960,17 @@ var makeCollect = function($){
         for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
             curr = properties[i];
             attr = curr.slice(0, curr.indexOf('='));
-            replace_regexp = new RegExp(escapeRegExp(curr), 'g');
+            /*
+            make sure either start of phrase or a space before to prevent a bad match
+            eg. title="test" would match data-title="test"
+            */
+            replace_regexp = new RegExp("(?:^|\\s)" + escapeRegExp(curr), 'g');
             // don't include on___ properties
             if ( attr.indexOf('on') === 0 ) {
                 html = html.replace(replace_regexp, '');    
             } else {
-                html = html.replace(replace_regexp, wrapProperty(curr, 'attr-' + attr));    
+                // add the preceding space matched by replace_regexp to the replacement string
+                html = html.replace(replace_regexp, " " + wrapProperty(curr, 'attr-' + attr));    
             }
         }
         
