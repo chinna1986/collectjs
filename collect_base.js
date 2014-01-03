@@ -41,12 +41,14 @@ var makeCollect = function($){
             if ( events_on ) {
                 Collect.events.off();
                 _this.text('On');
+                _this.swapClasses('con', 'pro');
                 clearClass('query_check');
                 clearClass('collect_highlight');
                 clearClass('saved_preview');
             } else {
                 Collect.events.on();
                 _this.text('Off');
+                _this.swapClasses('pro', 'con');
             }
             events_on = !events_on;
         }
@@ -200,19 +202,18 @@ var makeCollect = function($){
                 eles = selectorElements(selector),
                 type = $('#selector_capture').val(),
                 outString = '',
-                i, len;
+                i = 0,
+                len = eles.length,
+                attr;
             if ( selector === '' || type === '' ) {
                 outString = "No attribute to capture";
             } else if ( type === 'text' ) {
-                i=0;
-                len = eles.length;
                 for ( ; i<len; i++ ) {
                     outString += "<p>" + ($(eles[i]).text()) + "</p>";
                 }
             } else if ( type.indexOf('attr-') === 0 ) {
-                var attr = type.slice(type.indexOf('-')+1);
-                i=0;
-                len = eles.length;
+                // get everything after attr-
+                attr = type.slice(type.indexOf('-')+1);
                 for ( ; i<len; i++ ) {
                     outString += "<p>" + ($(eles[i]).prop(attr)) + "</p>";
                 }
@@ -538,6 +539,7 @@ var makeCollect = function($){
         $('head').append(s);
     }
 
+    // utility function because I was removing/adding classes in a number of places
     $.fn.swapClasses = function(oldClass, newClass){
         return this.each(function(){
             $(this)
@@ -546,6 +548,7 @@ var makeCollect = function($){
         });
     };
 
+    // adds a div with text @msg to #collect_messages, disappears after 2 seconds
     function alertMessage(msg) {
         var modal = document.createElement('div'),
             messageHolder = document.getElementById('collect_messages');
@@ -573,7 +576,7 @@ var makeCollect = function($){
     }
 
     /*
-    adds 
+    adds the preview modal html and events to the page
     */
     function addPreview(){
         var preview_html = "{{preview.html}}",
@@ -931,51 +934,14 @@ var makeCollect = function($){
             // match all opening html tags along with their attributes
             tags = html.match(/<[^\/].+?>/g),
             text_val = $(element).text().replace(singleSpaceRegexp, '').replace('&','&amp;'),
-            properties = [];
-        // find tag attributes
-        if ( tags ) {
-            /*
-            @tags is an array of strings of opening html tags
-            eg. <a href="#">
-            returns an array of the unique attributes
-            */
-            var property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
-                property_check = {},
-                tagProps = tags.join('').match(property_regex);
-            if ( tagProps ) {
-            // add unique attributes to properties array
-                for ( var p=0, tagLen=tagProps.length; p<tagLen; p++ ) {
-                    curr = tagProps[p];
-                    if ( !property_check[curr] ) { 
-                        properties.push(tagProps[p]);
-                        property_check[curr] = true;
-                    }
-                    
-                }
-            }
-        }
+            attrs = tagAttributes(tags);               
 
         html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        // replace properties with capture spans
-        for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
-            curr = properties[i];
-            attr = curr.slice(0, curr.indexOf('='));
-            /*
-            make sure either start of phrase or a space before to prevent a bad match
-            eg. title="test" would match data-title="test"
-            */
-            replace_regexp = new RegExp("(?:^|\\s)" + escapeRegExp(curr), 'g');
-            // don't include on___ properties
-            if ( attr.indexOf('on') === 0 ) {
-                html = html.replace(replace_regexp, '');    
-            } else {
-                // add the preceding space matched by replace_regexp to the replacement string
-                html = html.replace(replace_regexp, " " + wrapProperty(curr, 'attr-' + attr));    
-            }
-        }
+        html = wrapAttributes(html, attrs);
         
         // create capture spans with 'text' targets on all text
         if ( text_val !== '' ) {
+            // concatenate long text with an ellipsis
             if ( text_val.length > 100 ){
                 text_val = text_val.slice(0, 25) + "..." + text_val.slice(-25);
             }
@@ -984,8 +950,64 @@ var makeCollect = function($){
             text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
             var regexp_string = '(?:&gt;\\s*)' + escapeRegExp(text_val) + '(?:\\s*&lt;)',
                 text_replace_regexp = new RegExp(regexp_string, 'g'),
-                replace_string = wrapProperty(text_val, 'text', '&gt;', '&lt;');
+                replace_string = wrapText(text_val, 'text', '&gt;', '&lt;');
             html = html.replace(text_replace_regexp, replace_string);
+        }
+        return html;
+    }
+
+    /*
+    @tags is an array of strings of opening html tags
+    eg. <a href="#">
+    returns an array of the unique attributes
+    */
+    function tagAttributes(tags){
+        var attr_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
+            attr_check = {},
+            attrs = [],
+            curr, tagAttrs;
+        if ( tags ) {
+            tagAttrs = tags.join('').match(attr_regex);
+            if ( tagAttrs ) {
+                // add unique attributes to attrs array
+                for ( var p=0, tagLen=tagAttrs.length; p<tagLen; p++ ) {
+                    curr = tagAttrs[p];
+                    if ( !attr_check[curr] ) { 
+                        attrs.push(tagAttrs[p]);
+                        attr_check[curr] = true;
+                    }
+                    
+                }
+            }
+        }
+            
+        return attrs;
+    }
+
+    /*
+    given an @html string and an array @attrs, iterate over items in attrs, and replace matched text
+    in html with a wrapped version of that match
+    */
+    function wrapAttributes(html, attrs) {
+        var curr,
+            replace_regexp,
+            attr;
+        // replace attrs with capture spans
+        for ( var i=0, prop_len=attrs.length; i<prop_len; i++ ) {
+            curr = attrs[i];
+            attr = curr.slice(0, curr.indexOf('='));
+            /*
+            make sure either start of phrase or a space before to prevent a bad match
+            eg. title="test" would match data-title="test"
+            */
+            replace_regexp = new RegExp("(?:^|\\s)" + escapeRegExp(curr), 'g');
+            // don't include on___ attrs
+            if ( attr.indexOf('on') === 0 ) {
+                html = html.replace(replace_regexp, '');    
+            } else {
+                // add the preceding space matched by replace_regexp to the replacement string
+                html = html.replace(replace_regexp, " " + wrapText(curr, 'attr-' + attr));    
+            }
         }
         return html;
     }
@@ -1018,9 +1040,8 @@ var makeCollect = function($){
     /*
     wrap an attribute or the text of an html string 
     (used in #selector_text div)
-
     */
-    function wrapProperty(ele, val, before, after){
+    function wrapText(ele, val, before, after){
         // don't include empty properties
         if ( ele.indexOf('=""') !== -1 ) {
             return '';
@@ -1076,7 +1097,7 @@ var makeCollect = function($){
 
     function pseudoHTML(selector, val) {
         return "<span class='pseudo toggleable no_select'>:" + 
-            selector + "(<span class='child_toggle' title='options: an+b " + 
+            selector + "(<span class='child_toggle no_select' title='options: an+b " + 
             "(a & b are integers), a positive integer (1,2,3...), odd, even'" + 
             "contenteditable='true'>" + (val || 1 ) + "</span>)</span>";
     }

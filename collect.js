@@ -41,12 +41,14 @@ var makeCollect = function($){
             if ( events_on ) {
                 Collect.events.off();
                 _this.text('On');
+                _this.swapClasses('con', 'pro');
                 clearClass('query_check');
                 clearClass('collect_highlight');
                 clearClass('saved_preview');
             } else {
                 Collect.events.on();
                 _this.text('Off');
+                _this.swapClasses('pro', 'con');
             }
             events_on = !events_on;
         }
@@ -200,19 +202,18 @@ var makeCollect = function($){
                 eles = selectorElements(selector),
                 type = $('#selector_capture').val(),
                 outString = '',
-                i, len;
+                i = 0,
+                len = eles.length,
+                attr;
             if ( selector === '' || type === '' ) {
                 outString = "No attribute to capture";
             } else if ( type === 'text' ) {
-                i=0;
-                len = eles.length;
                 for ( ; i<len; i++ ) {
                     outString += "<p>" + ($(eles[i]).text()) + "</p>";
                 }
             } else if ( type.indexOf('attr-') === 0 ) {
-                var attr = type.slice(type.indexOf('-')+1);
-                i=0;
-                len = eles.length;
+                // get everything after attr-
+                attr = type.slice(type.indexOf('-')+1);
                 for ( ; i<len; i++ ) {
                     outString += "<p>" + ($(eles[i]).prop(attr)) + "</p>";
                 }
@@ -517,7 +518,7 @@ var makeCollect = function($){
     doesn't interfere with itself, and add event listeners to the interface
     */
     function addInterface() {
-        var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><div><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p></div><div class=\"collectColumn\"><div id=\"collect_error\"></div><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\"/></p><p><label for=\"selector_string\" title=\"The CSS selector used to get the desired selector\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" title=\"The CSS selector used to get the desired selector\"/></p><p><label for=\"selector_capture\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\"/></p><p><label for=\"selector_low_index\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\">Ignore Indexes:</label><input name=\"index\" id=\"selector_index\" class=\"index\" val=\"\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\"/></p></div></form><div class=\"button_group\"><button id=\"collect_save\" class=\"pro\">Save Rule</button><button id=\"collect_preview\">Preview Rule</button><button id=\"collect_clear_form\" class=\"con\">Clear Form</button></div></div><div class=\"collectColumn\"><div class=\"button_group\">Group: <select id=\"collect_selector_groups\"></select><button id=\"collect_new_group\">New Group</button><button id=\"collect_delete_group\" class=\"con\">Delete Group</button></div><div class=\"button_group\"><button id=\"collect_preview_saved\">Preview Group Rules</button><button id=\"collect_upload_group\" class=\"pro\">Upload Group</button></div><div id=\"collect_messages\"></div><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div></div></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\">Off</button><button id=\"close_selector\">Close</button></div></div>";
+        var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><div><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_count\"></p><p id=\"selector_text\"></p></div><div class=\"collectColumn\"><div id=\"collect_error\"></div><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\"/></p><p><label for=\"selector_string\" title=\"The CSS selector used to get the desired selector\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" title=\"The CSS selector used to get the desired selector\"/></p><p><label for=\"selector_capture\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\"/></p><p><label for=\"selector_low_index\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\">Ignore Indexes:</label><input name=\"index\" id=\"selector_index\" class=\"index\" val=\"\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\"/></p></div></form><div class=\"button_group\"><button id=\"collect_save\" class=\"pro\">Save Rule</button><button id=\"collect_preview\">Preview Rule</button><button id=\"collect_clear_form\" class=\"con\">Clear Form</button></div></div><div class=\"collectColumn\"><div class=\"button_group\">Group: <select id=\"collect_selector_groups\"></select><button id=\"collect_new_group\">New Group</button><button id=\"collect_delete_group\" class=\"con\">Delete Group</button></div><div class=\"button_group\"><button id=\"collect_preview_saved\">Preview Group Rules</button><button id=\"collect_upload_group\" class=\"pro\">Upload Group</button></div><div id=\"collect_messages\"></div><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div></div></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\" class=\"con\">Off</button><button id=\"close_selector\" class=\"con\">Close</button></div></div>";
         $(interface_html).appendTo('body');
         $('#collect_interface, #collect_interface *').addClass('no_select');
 
@@ -533,11 +534,12 @@ var makeCollect = function($){
     function addCSS() {
         var s = $('<style type="text/css" rel="stylesheet" id="collect-style">'),
             css_string = ".collect_highlight{" + Collect.highlight_css + "}" +
-            ".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#form_inputs {margin: 15px 0;}.button_group{display: block;padding: 5px 0;}.button_group button{margin-bottom:5px;}#control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}.attach_top #control_buttons button{border-top: 0;}#collect_interface button {line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#selector_form input.index{width: 40px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}#saved_selectors, #desired_selectors{float: left;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #B0E69E;}.desired_selector{background: #E69E9E;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: rgba(255,215,0,0.25) !important; border: 1px solid yellow; }.query_check .query_check{background: rgba(255,215,0,0.75) !important; }.saved_preview, .saved_preview *{background: rgba(255,0,0,0.25) !important; }#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background{display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_interface{color: #000;display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;height: 35%;min-height: 200px;}#preview_background {display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_holder{height: 90%;overflow-y: scroll;}.preview_group h2{margin: 0;font-size: 1.5em;}.preview_group ul{margin: 0;padding: 5px 0;}#collect_messages{font-weight: bold;}#collect_interface .con{color: #fff;background: #F05D71;border-color: #F05D71;}#collect_interface .pro{color: #fff;background: #0E965D;border-color: #0E965D;}.collectColumn{display: inline-block;vertical-align: top;width: 50%;}.button_group button{margin: 0 5px;}";
+            ".query_check, .query_check * {" + Collect.check_css + "}" + "#collect_interface{position: fixed;left: 25%;width: 50%;min-height: 220px;max-height: 300px;padding: 5px 20px;background: #fff;z-index: 10000;overflow-y: scroll;}#collect_interface *, #options_interface *{color: #222;font-family: sans-serif;font-size: 12px;}#collect_interface *, #options_interface *{text-align: left;}#collect_interface.attach_top{top: 0;border-width: 0 2px 2px;border-style: solid;border-color: #444;}#collect_interface.attach_bottom{bottom: 0;border-width: 2px 2px 0;border-style: solid;border-color: #444;}#collect_interface h2{font-size: 1.25em;font-weight: bold;}#collect_interface p{font-size: 1em;}#collect_interface p, #collect_interface h2{float: none;display: block;margin: 2px 0;}#control_buttons{position: absolute;top:0;right:0;}#form_inputs {margin: 15px 0;}.button_group{display: block;padding: 5px 0;}.button_group button{margin-bottom:5px;}#control_buttons button{padding: 2px 5px;margin: 0;border: 1px solid #444;border-right: 0;text-align: center;box-shadow: none;min-width: 0;border-radius: 0;}.attach_top #control_buttons button{border-top: 0;}#collect_interface button {line-height: 1em;height: 2em;float: none;clear: none;cursor: pointer;background: #efefef;font-size: 12px;font-weight: normal;padding: 0 5px;border: 1px outset #ccc;text-transform: none;}#collect_interface.attach_bottom  #control_buttons button{border-top: 0;}#selector_parts{line-height: 2em;}#selector_form input{width: 80%;border: 1px solid #777;clear: none;float: none;}#selector_form input.index{width: 40px;}#collect_interface .toggleable{cursor: pointer;}#collect_interface .toggleable:hover{color: #FF0000;}#collect_interface .capture{border: 1px solid #777;background: #ddd;padding: 2px;cursor: pointer;}#collect_interface .selector_group{white-space: nowrap;border: 1px solid #777;background: #ddd;border-right: 0;padding: 2px 0 2px 2px;position: relative;}#collect_interface #selector_form label{display: inline-block;width: 75px;}#collect_interface .off{opacity: 0.4;}#collect_interface .group_options{background:#efefef;color: #777;padding: 2px;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;margin-left: 3px;cursor: pointer;position: relative;}#collect_interface .group_dropdown{position: absolute;color: #222;display: none;z-index: 10003;background: #fff;top: 19px;right: 0;width: 80px;border: 1px solid #777;}#collect_interface .group_dropdown p{margin: 0;text-align: right;}#collect_interface .group_dropdown p:hover{background: #666;color: #efefef;}#collect_interface .group_options:hover .group_dropdown{display: block;}#collect_interface #selector_text *{line-height: 2em;}#collect_selectors{margin-top: 10px;}.collect_group{margin-right: 5px;}#saved_selectors, #desired_selectors{float: left;}.saved_selector, .desired_selector{padding: 2px 5px;border: 1px solid #777;cursor: pointer;}.collect_group .deltog{cursor: pointer;border-width: 1px 1px 1px 0;border-style: solid;border-color: #777;background: #efefef;padding: 2px;}.saved_selector.active_selector, .desired_selector.active_selector{border-color: #000;border-width: 2px;font-weight: bold;}.saved_selector{background: #94D4B9;}.desired_selector{background: #E69E9E;}.collect_highlight{border: 1px solid blue !important;}  tr.collect_highlight{ display: table; }.query_check, .query_check *{ background: rgba(255,215,0,0.25) !important; border: 1px solid yellow; }.query_check .query_check{background: rgba(255,215,0,0.75) !important; }.saved_preview, .saved_preview *{background: rgba(255,0,0,0.25) !important; }#options_interface{display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;}#options_background{display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_interface{color: #000;display: none;position: fixed;width: 50%;background: #fff;border: 2px solid #444;top: 25%;left: 25%;padding: 10px;z-index: 10001;height: 35%;min-height: 200px;}#preview_background {display: none;top: 0;left: 0;width: 100%;height: 100%;position: fixed;opacity: 0.25;background: black;}#preview_holder{height: 90%;overflow-y: scroll;}.preview_group h2{margin: 0;font-size: 1.5em;}.preview_group ul{margin: 0;padding: 5px 0;}#collect_messages{font-weight: bold;}#collect_interface .con{color: #fff;background: #F05D71;border-color: #F05D71;}#collect_interface .pro{color: #fff;background: #0E965D;border-color: #0E965D;}.collectColumn{display: inline-block;vertical-align: top;width: 50%;}.button_group button{margin: 0 5px;}";
         s.text(css_string);
         $('head').append(s);
     }
 
+    // utility function because I was removing/adding classes in a number of places
     $.fn.swapClasses = function(oldClass, newClass){
         return this.each(function(){
             $(this)
@@ -546,6 +548,7 @@ var makeCollect = function($){
         });
     };
 
+    // adds a div with text @msg to #collect_messages, disappears after 2 seconds
     function alertMessage(msg) {
         var modal = document.createElement('div'),
             messageHolder = document.getElementById('collect_messages');
@@ -573,7 +576,7 @@ var makeCollect = function($){
     }
 
     /*
-    adds 
+    adds the preview modal html and events to the page
     */
     function addPreview(){
         var preview_html = "<div id=\"preview_background\"></div><section id=\"preview_interface\" class=\"options\">    <div id=\"preview_holder\">    </div>    <a href=\"#\" id=\"close_preview\">Close</a></section>",
@@ -931,51 +934,14 @@ var makeCollect = function($){
             // match all opening html tags along with their attributes
             tags = html.match(/<[^\/].+?>/g),
             text_val = $(element).text().replace(singleSpaceRegexp, '').replace('&','&amp;'),
-            properties = [];
-        // find tag attributes
-        if ( tags ) {
-            /*
-            @tags is an array of strings of opening html tags
-            eg. <a href="#">
-            returns an array of the unique attributes
-            */
-            var property_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
-                property_check = {},
-                tagProps = tags.join('').match(property_regex);
-            if ( tagProps ) {
-            // add unique attributes to properties array
-                for ( var p=0, tagLen=tagProps.length; p<tagLen; p++ ) {
-                    curr = tagProps[p];
-                    if ( !property_check[curr] ) { 
-                        properties.push(tagProps[p]);
-                        property_check[curr] = true;
-                    }
-                    
-                }
-            }
-        }
+            attrs = tagAttributes(tags);               
 
         html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        // replace properties with capture spans
-        for ( var i=0, prop_len=properties.length; i<prop_len; i++ ) {
-            curr = properties[i];
-            attr = curr.slice(0, curr.indexOf('='));
-            /*
-            make sure either start of phrase or a space before to prevent a bad match
-            eg. title="test" would match data-title="test"
-            */
-            replace_regexp = new RegExp("(?:^|\\s)" + escapeRegExp(curr), 'g');
-            // don't include on___ properties
-            if ( attr.indexOf('on') === 0 ) {
-                html = html.replace(replace_regexp, '');    
-            } else {
-                // add the preceding space matched by replace_regexp to the replacement string
-                html = html.replace(replace_regexp, " " + wrapProperty(curr, 'attr-' + attr));    
-            }
-        }
+        html = wrapAttributes(html, attrs);
         
         // create capture spans with 'text' targets on all text
         if ( text_val !== '' ) {
+            // concatenate long text with an ellipsis
             if ( text_val.length > 100 ){
                 text_val = text_val.slice(0, 25) + "..." + text_val.slice(-25);
             }
@@ -984,8 +950,64 @@ var makeCollect = function($){
             text_val = text_val.replace(/(^\s*|[\n\t]+|\s*$)/g, '');
             var regexp_string = '(?:&gt;\\s*)' + escapeRegExp(text_val) + '(?:\\s*&lt;)',
                 text_replace_regexp = new RegExp(regexp_string, 'g'),
-                replace_string = wrapProperty(text_val, 'text', '&gt;', '&lt;');
+                replace_string = wrapText(text_val, 'text', '&gt;', '&lt;');
             html = html.replace(text_replace_regexp, replace_string);
+        }
+        return html;
+    }
+
+    /*
+    @tags is an array of strings of opening html tags
+    eg. <a href="#">
+    returns an array of the unique attributes
+    */
+    function tagAttributes(tags){
+        var attr_regex = /[a-zA-Z\-_]+=('.*?'|".*?")/g,
+            attr_check = {},
+            attrs = [],
+            curr, tagAttrs;
+        if ( tags ) {
+            tagAttrs = tags.join('').match(attr_regex);
+            if ( tagAttrs ) {
+                // add unique attributes to attrs array
+                for ( var p=0, tagLen=tagAttrs.length; p<tagLen; p++ ) {
+                    curr = tagAttrs[p];
+                    if ( !attr_check[curr] ) { 
+                        attrs.push(tagAttrs[p]);
+                        attr_check[curr] = true;
+                    }
+                    
+                }
+            }
+        }
+            
+        return attrs;
+    }
+
+    /*
+    given an @html string and an array @attrs, iterate over items in attrs, and replace matched text
+    in html with a wrapped version of that match
+    */
+    function wrapAttributes(html, attrs) {
+        var curr,
+            replace_regexp,
+            attr;
+        // replace attrs with capture spans
+        for ( var i=0, prop_len=attrs.length; i<prop_len; i++ ) {
+            curr = attrs[i];
+            attr = curr.slice(0, curr.indexOf('='));
+            /*
+            make sure either start of phrase or a space before to prevent a bad match
+            eg. title="test" would match data-title="test"
+            */
+            replace_regexp = new RegExp("(?:^|\\s)" + escapeRegExp(curr), 'g');
+            // don't include on___ attrs
+            if ( attr.indexOf('on') === 0 ) {
+                html = html.replace(replace_regexp, '');    
+            } else {
+                // add the preceding space matched by replace_regexp to the replacement string
+                html = html.replace(replace_regexp, " " + wrapText(curr, 'attr-' + attr));    
+            }
         }
         return html;
     }
@@ -1018,9 +1040,8 @@ var makeCollect = function($){
     /*
     wrap an attribute or the text of an html string 
     (used in #selector_text div)
-
     */
-    function wrapProperty(ele, val, before, after){
+    function wrapText(ele, val, before, after){
         // don't include empty properties
         if ( ele.indexOf('=""') !== -1 ) {
             return '';
@@ -1076,7 +1097,7 @@ var makeCollect = function($){
 
     function pseudoHTML(selector, val) {
         return "<span class='pseudo toggleable no_select'>:" + 
-            selector + "(<span class='child_toggle' title='options: an+b " + 
+            selector + "(<span class='child_toggle no_select' title='options: an+b " + 
             "(a & b are integers), a positive integer (1,2,3...), odd, even'" + 
             "contenteditable='true'>" + (val || 1 ) + "</span>)</span>";
     }
