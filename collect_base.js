@@ -40,14 +40,14 @@ var makeCollect = function($){
             var _this = $(this);
             if ( events_on ) {
                 Collect.events.off();
-                _this.text('On');
+                _this.text('Turn On');
                 _this.swapClasses('con', 'pro');
                 clearClass('query_check');
                 clearClass('collect_highlight');
                 clearClass('saved_preview');
             } else {
                 Collect.events.on();
-                _this.text('Off');
+                _this.text('Turn Off');
                 _this.swapClasses('pro', 'con');
             }
             events_on = !events_on;
@@ -334,12 +334,10 @@ var makeCollect = function($){
             // don't delete default group
             if ( group !== 'default' ) {
                 $('#collect_selector_groups option:selected').remove();
-                // when deleting a group, set the default group to being selected
-                //$('#collect_selector_groups option').get(0).selected = true;
-                loadSavedSelectors();
             } else {
                 alertMessage("Cannot delete 'default' group");
             }
+            loadSavedSelectors();
         }
 
         function uploadGroupEvent(event){
@@ -645,12 +643,8 @@ var makeCollect = function($){
         var group = currentGroup(),
             rules = getRules(group);
         $('#saved_selectors').html('');
-        if ( JSON.stringify(rules) === JSON.stringify({}) ){
-            alertMessage(group + " has no saved selectors");
-        } else {
-            for( var key in rules ){
-                addSavedSelector(rules[key]);
-            }
+        for( var key in rules ){
+            addSavedSelector(rules[key]);
         }
     }
 
@@ -762,7 +756,12 @@ var makeCollect = function($){
 
     function clearRules(group){
         var currGroups = JSON.parse(localStorage.rules);
-        delete currGroups[group];
+        // just clear contents of default, don't delete it
+        if ( group === 'default' ) {
+            currGroups[group] = {};
+        } else {
+            delete currGroups[group];    
+        }        
         localStorage.rules = JSON.stringify(currGroups);
     }
 

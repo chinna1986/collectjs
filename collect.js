@@ -40,14 +40,14 @@ var makeCollect = function($){
             var _this = $(this);
             if ( events_on ) {
                 Collect.events.off();
-                _this.text('On');
+                _this.text('Turn On');
                 _this.swapClasses('con', 'pro');
                 clearClass('query_check');
                 clearClass('collect_highlight');
                 clearClass('saved_preview');
             } else {
                 Collect.events.on();
-                _this.text('Off');
+                _this.text('Turn Off');
                 _this.swapClasses('pro', 'con');
             }
             events_on = !events_on;
@@ -334,12 +334,10 @@ var makeCollect = function($){
             // don't delete default group
             if ( group !== 'default' ) {
                 $('#collect_selector_groups option:selected').remove();
-                // when deleting a group, set the default group to being selected
-                //$('#collect_selector_groups option').get(0).selected = true;
-                loadSavedSelectors();
             } else {
                 alertMessage("Cannot delete 'default' group");
             }
+            loadSavedSelectors();
         }
 
         function uploadGroupEvent(event){
@@ -518,7 +516,7 @@ var makeCollect = function($){
     doesn't interfere with itself, and add event listeners to the interface
     */
     function addInterface() {
-        var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><div><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_text\"></p><p id=\"selector_count\"></p></div><div class=\"collectColumn\"><div id=\"collect_error\"></div><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\"/></p><p><label for=\"selector_string\" title=\"The CSS selector used to get the desired selector\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" title=\"The CSS selector used to get the desired selector\"/></p><p><label for=\"selector_capture\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\"/></p><p><label for=\"selector_low_index\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\">Ignore Indexes:</label><input name=\"index\" id=\"selector_index\" class=\"index\" val=\"\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\"/></p></div></form><div class=\"button_group\"><button id=\"collect_save\" class=\"pro\">Save Rule</button><button id=\"collect_preview\">Preview Rule</button><button id=\"collect_clear_form\" class=\"con\">Clear Form</button></div></div><div class=\"collectColumn\"><div class=\"button_group\"><p>Group</p><select id=\"collect_selector_groups\"></select><button id=\"collect_new_group\">New Group</button><button id=\"collect_delete_group\" class=\"con\">Delete Group</button><button id=\"collect_upload_group\" class=\"pro\">Upload Group</button></div><div class=\"button_group\"><button id=\"collect_preview_saved\">Preview Group Rules</button></div><div id=\"collect_messages\"></div><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div></div></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\" class=\"con\">Off</button><button id=\"close_selector\" class=\"con\">Close</button></div></div>";
+        var interface_html = "<div class=\"attach_bottom\" id=\"collect_interface\"><section id=\"selector_results\"><div><h2 >Selector</h2><p id=\"selector_parts\"></p><p id=\"selector_text\"></p><p id=\"selector_count\"></p></div><div class=\"collectColumn\"><div id=\"collect_error\"></div><form id=\"selector_form\"><div id=\"form_inputs\"><p><label for=\"selector_name\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\">Name:</label><input name=\"name\" id=\"selector_name\" val=\"\" title=\"The name of the value that is being selected. This should be equivalent to the item\'s column name in a database\"/></p><p><label for=\"selector_string\" title=\"The CSS selector used to get the desired selector\">Selector:</label><input name=\"selector\" id=\"selector_string\" val=\"\" title=\"The CSS selector used to get the desired selector\"/></p><p><label for=\"selector_capture\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\">Capture:</label><input name=\"capture\" id=\"selector_capture\" val=\"\" title=\"Either the HTML element\'s attribute to capture or the element\'s text\"/></p><p><label for=\"selector_low_index\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\">Ignore Indexes:</label><input name=\"index\" id=\"selector_index\" class=\"index\" val=\"\" title=\"Use this for selectors that return multiple values if you want to exclude certain values. A positive index will exclude elements from zero up to the index and a negative index will exclude values after the array\'s length minus the index\'s absolute value\"/></p></div></form><div class=\"button_group\"><button id=\"collect_save\" class=\"pro\">Save Rule</button><button id=\"collect_preview\">Preview Rule</button><button id=\"collect_clear_form\" class=\"con\">Clear Form</button></div></div><div class=\"collectColumn\"><div class=\"button_group\"><p>Group</p><select id=\"collect_selector_groups\"></select><button id=\"collect_new_group\">New Group</button><button id=\"collect_delete_group\" class=\"con\">Delete Group</button><button id=\"collect_upload_group\" class=\"pro\">Upload Group</button></div><div class=\"button_group\"><button id=\"collect_preview_saved\">Preview Group Rules</button></div><div id=\"collect_messages\"></div><div id=\"collect_selectors\"><section id=\"desired_selectors\"></section><section id=\"saved_selectors\"></section></div></div></section><div id=\"control_buttons\"><button id=\"open_options\">Options</button><button id=\"move_position\">Move to Top</button><button id=\"off_button\" class=\"con\">Turn Off</button><button id=\"close_selector\" class=\"con\">Close</button></div></div>";
         $(interface_html).appendTo('body');
         $('#collect_interface, #collect_interface *').addClass('no_select');
 
@@ -645,12 +643,8 @@ var makeCollect = function($){
         var group = currentGroup(),
             rules = getRules(group);
         $('#saved_selectors').html('');
-        if ( JSON.stringify(rules) === JSON.stringify({}) ){
-            alertMessage(group + " has no saved selectors");
-        } else {
-            for( var key in rules ){
-                addSavedSelector(rules[key]);
-            }
+        for( var key in rules ){
+            addSavedSelector(rules[key]);
         }
     }
 
@@ -762,7 +756,12 @@ var makeCollect = function($){
 
     function clearRules(group){
         var currGroups = JSON.parse(localStorage.rules);
-        delete currGroups[group];
+        // just clear contents of default, don't delete it
+        if ( group === 'default' ) {
+            currGroups[group] = {};
+        } else {
+            delete currGroups[group];    
+        }        
         localStorage.rules = JSON.stringify(currGroups);
     }
 
