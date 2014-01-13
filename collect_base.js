@@ -656,8 +656,9 @@ var makeCollect = function($){
 
 
     function addGroup(groupName){
+        // if no rules exist, create default group
         if ( localStorage.rules === undefined ) {
-            localStorage.rules = "{}";
+            localStorage.rules = "{\"default\":{}}";
         }
         var rules = JSON.parse(localStorage.rules);
         if ( rules[groupName] !== undefined ) {
@@ -1178,13 +1179,13 @@ var makeCollect = function($){
     returns the html for a selector group
     */
     Selector.prototype.toHTML = function( on ){
-        var selector = wrap_toggleable(this.tag.toLowerCase(), on);
+        var selector = wrapToggleable(this.tag.toLowerCase(), on);
         if ( this.id ) {
-            selector += wrap_toggleable(this.id, on);
+            selector += wrapToggleable(this.id, on);
         }
         if ( this.classes.length ) {
             for ( var pos=0, len=this.classes.length; pos < len; pos++ ) {
-                selector += wrap_toggleable(this.classes[pos], on);
+                selector += wrapToggleable(this.classes[pos], on);
             }
         }
 
@@ -1199,9 +1200,8 @@ var makeCollect = function($){
             "</span>";
     };
 
-    function wrap_toggleable(to_wrap, on) {
-        return "<span class='toggleable no_select " + (on ? "":"off") + 
-            "'>" + to_wrap + "</span>";
+    function wrapToggleable(to_wrap, on) {
+        return "<span class='toggleable no_select " + (on ? "":"off") + "'>" + to_wrap + "</span>";
     }
 
     /********************

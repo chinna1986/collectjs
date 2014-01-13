@@ -61,7 +61,7 @@ included to prevent possible selector collisions on sites the script is run on
 }
 
 .button_group button{
-	margin-bottom:5px;
+	margin: 0 5px 5px 0;
 }
 
 #control_buttons button{
@@ -127,9 +127,11 @@ included to prevent possible selector collisions on sites the script is run on
 
 #collect_interface .selector_group{
 	white-space: nowrap;
+	/*
 	border: 1px solid #777;
 	background: #ddd;
 	border-right: 0;
+	*/
 	padding: 2px 0 2px 2px;
 	position: relative;
 }
@@ -144,13 +146,14 @@ included to prevent possible selector collisions on sites the script is run on
 }
 
 #collect_interface .group_options{
-	background:#efefef;
-	color: #777;
-	padding: 2px;
+	/*background:#efefef;
 	border-width: 1px 1px 1px 0;
 	border-style: solid;
 	border-color: #777;
 	margin-left: 3px;
+	*/
+	color: #777;
+	padding: 2px;
 	cursor: pointer;
 	position: relative;
 }
@@ -335,6 +338,6 @@ included to prevent possible selector collisions on sites the script is run on
 	width: 50%;
 }
 
-.button_group button{
-	margin: 0 5px;
+.button_group p{
+	border-bottom: 1px solid #222;
 }
