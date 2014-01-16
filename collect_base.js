@@ -850,7 +850,8 @@ var makeCollect = function($){
                 indexInt = parseInt(index, 10),
                 newEles,
                 low = 0,
-                high = eles.length;
+                high = eles.length,
+                originalLength = high;
             // if neither low or high are defined, add to all elements
             if ( isNaN(indexInt) ) {
                 eles.addClass("query_check");
