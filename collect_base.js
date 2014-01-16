@@ -870,7 +870,6 @@ var makeCollect = function($){
                     low = indexInt;
                 }
                 newEles = [];
-                console.log(low, high);
                 for ( var i = low; i<high; i++ ) {
                     eles.eq(i).addClass("query_check");
                     newEles.push(eles.get(i));
