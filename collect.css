@@ -8,10 +8,9 @@ included to prevent possible selector collisions on sites the script is run on
 	width: 50%;
 	min-height: 220px;
 	max-height: 300px;
-	padding: 5px 20px;
+	padding: 0;
 	background: #fff;
 	z-index: 10000;
-	overflow-y: scroll;
 }
 #collect_interface *, #options_interface *{
 	color: #222;
@@ -45,11 +44,6 @@ included to prevent possible selector collisions on sites the script is run on
 	display: block;
 	margin: 2px 0;
 }
-#control_buttons{
-	position: absolute;
-	top:0;
-	right:0;
-}
 
 #form_inputs {
 	margin: 15px 0;
@@ -64,18 +58,45 @@ included to prevent possible selector collisions on sites the script is run on
 	margin: 0 5px 5px 0;
 }
 
-#control_buttons button{
+#topbar{
+	height: 28px;
+	background: #efefef;
+	font-size:20px;
+	padding: 0 0 0 10px;
+	line-height: 28px;
+}
+
+#collect_interface #topbar button{
 	padding: 2px 5px;
 	margin: 0;
-	border: 1px solid #444;
+	border: 0;
 	border-right: 0;
 	text-align: center;
 	box-shadow: none;
 	min-width: 0;
 	border-radius: 0;
+	font-size: 14px;
 }
 
-.attach_top #control_buttons button{
+#collect_interface #button_floater{
+	float: right;
+}
+
+#topbar button.con{
+	background: #efefef;
+	color: #F05D71;
+}
+
+#topbar button:hover{
+	background: #cccccc;
+}
+
+#topbar button.con:hover{
+	background: #F296A3;
+
+}
+
+.attach_top #topbar button{
 	border-top: 0;
 }
 
@@ -89,11 +110,11 @@ included to prevent possible selector collisions on sites the script is run on
 	font-size: 12px;
 	font-weight: normal;
 	padding: 0 5px;
-	border: 1px outset #ccc;
+	border: 1px outset #efefef;
 	text-transform: none;
 }
 
-#collect_interface.attach_bottom  #control_buttons button{
+#collect_interface.attach_bottom  #topbar button{
 	border-top: 0;
 }
 
@@ -338,9 +359,22 @@ included to prevent possible selector collisions on sites the script is run on
 .collectColumn{
 	display: inline-block;
 	vertical-align: top;
-	width: 50%;
+	width: 48%;
+	padding: 0 0 0 2%;
 }
 
 .button_group p{
 	border-bottom: 1px solid #222;
+}
+
+#collect_interface #selector_count{
+	font-size: 20px;
+}
+
+#options_interface #close_options, #preview_interface #close_preview{
+	font-size:20px;
+	font-weight: bold;
+	background: #efefef;
+	padding: 2px 5px;
+	color: #000;
 }

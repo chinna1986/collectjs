@@ -869,6 +869,7 @@ var makeCollect = function($){
                     low = indexInt;
                 }
                 newEles = [];
+                console.log(low, high);
                 for ( var i = low; i<high; i++ ) {
                     eles.eq(i).addClass("query_check");
                     newEles.push(eles.get(i));
@@ -885,14 +886,14 @@ var makeCollect = function($){
             clearClass('collect_highlight');
             $('#collect_error').html('');
             if (selector === ''){
-                $('#selector_count').html("Count: 0");
+                $('#selector_count').html("0");
                 $('#selector_string').val("");
                 $('#selector_text').html("");
             } else {
                 selected = selectorElements(selector);
                 selected = addQueryCheck(selected);
                 //selected.addClass('query_check');
-                $('#selector_count').html("Count: " + selected.length);
+                $('#selector_count').html(selected.length);
                 $('#selector_string').val(selector);
                 var text = selectorText(selected[0]);
                 $('#selector_text').html(text || "no text");
