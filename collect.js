@@ -231,15 +231,10 @@ var makeCollect = function($){
         // remove selector rule from localstorage
         function deleteRuleEvent(event){
             event.stopPropagation();
-            $(this).parents('.collect_group').remove();
             var selector_span = this.previousElementSibling,
-                index = parseInt(selector_span.dataset.index, 10);
-            if ( isNaN(index) ){
-                return;
-            } else {
-                deleteRule(currentGroup(), index);
-            }
-            
+                selector_name = selector_span.innerHTML;
+            $(this).parents('.collect_group').remove();
+            deleteRule(currentGroup(), selector_name);
         }
 
         // load saved selector information into the #selector_form for editing
@@ -261,8 +256,6 @@ var makeCollect = function($){
                 name = _this.text(),
                 index = _this.data('index'),
                 capture = _this.data('capture');
-            console.log(_this);
-            console.log("loading index: ", index);
             $('#selector_name').val(name);
             $('#selector_string').val(selector);
             $('#selector_capture').val(capture);
