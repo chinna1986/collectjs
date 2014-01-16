@@ -103,6 +103,8 @@ included to prevent possible selector collisions on sites the script is run on
 #selector_form input{
 	width: 80%;
 	border: 1px solid #777;
+	border-radius: 5px;
+	padding: 1px 5px;
 	clear: none;
 	float: none;
 }
@@ -119,7 +121,6 @@ included to prevent possible selector collisions on sites the script is run on
 }
 
 #collect_interface .capture{
-	border: 1px solid #777;
 	background: #ddd;
 	padding: 2px;
 	cursor: pointer;
@@ -139,10 +140,12 @@ included to prevent possible selector collisions on sites the script is run on
 #collect_interface #selector_form label{
 	display: inline-block;
 	width: 75px;
+	font-weight: bold;
 }
 
 #collect_interface .off{
 	opacity: 0.4;
+	color: #F05D71;
 }
 
 #collect_interface .group_options{
@@ -203,16 +206,17 @@ included to prevent possible selector collisions on sites the script is run on
 
 .saved_selector, .desired_selector{
 	padding: 2px 5px;
-	border: 1px solid #777;
 	cursor: pointer;
 }
 .collect_group .deltog{
 	cursor: pointer;
-	border-width: 1px 1px 1px 0;
-	border-style: solid;
-	border-color: #777;
-	background: #efefef;
+	font-weight: bold;
 	padding: 2px;
+
+}
+
+.collect_group:hover .deltog{
+	background: #CCC;
 }
 
 .saved_selector.active_selector, .desired_selector.active_selector{
@@ -327,9 +331,8 @@ included to prevent possible selector collisions on sites the script is run on
 }
 
 #collect_interface .pro{
-	color: #fff;
-	background: #0E965D;
-	border-color: #0E965D;
+	background: #94D4B9;
+	border-color: #94D4B9;
 }
 
 .collectColumn{
