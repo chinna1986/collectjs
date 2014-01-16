@@ -91,10 +91,10 @@ var makeCollect = function($){
 
         function verifyDropdown(event){
             event.stopPropagation();
-            // verify that nth-child is legitimate input
+            // verify that nth-of-type is legitimate input
             var _this = $(this),
                 text = _this.text().toLowerCase(),
-                /* matches nth-child selectors:
+                /* matches nth-of-type selectors:
                     odd, even, positive integers, an+b, -an+b
                 */
                 child_match = /^(?:odd|even|-?\d+n(?:\s*(?:\+|-)\s*\d+)?|\d+)$/;
@@ -166,12 +166,9 @@ var makeCollect = function($){
             updateInterface();
         }
 
-        function addPseudoChild(event){
-            addPseudoElement('nth-child', this);                    
-        }
-
         function addPseudoType(event){
             addPseudoElement('nth-of-type', this);
+            this.parentElement.removeChild(this);
         }
 
         // create and save an object for the current query selector/capture data
@@ -442,11 +439,9 @@ var makeCollect = function($){
                     .on('click', '.child_toggle', stopPropagation)
                     .on('blur', '.child_toggle', verifyDropdown)
                     .on('click', '.toggleable', toggleOff)
-                    .on('mouseenter', '.group_options', stopPropagation)
                     .on('mouseenter', '.selector_group', previewSelectorHover)
                     .on('mouseleave', '.selector_group', removeSelectorHover)
                     .on('click', '.deltog', removeSelectorGroup)
-                    .on('click', '.nthchild', addPseudoChild)
                     .on('click', '.nthtype', addPseudoType);
 
                 $('#selector_index').on('blur', blurUpdate);
@@ -466,11 +461,9 @@ var makeCollect = function($){
                     .off('click', '.child_toggle', stopPropagation)
                     .off('blur', '.child_toggle', verifyDropdown)
                     .off('click', '.toggleable', toggleOff)
-                    .off('mouseenter', '.group_options', stopPropagation)
                     .off('mouseenter', '.selector_group', previewSelectorHover)
                     .off('mouseleave', '.selector_group', removeSelectorHover)
                     .off('click', '.deltog', removeSelectorGroup)
-                    .off('click', '.nthchild', addPseudoChild)
                     .off('click', '.nthtype', addPseudoType);
 
                 $('#selector_index').off('blur', blurUpdate);
@@ -858,25 +851,6 @@ var makeCollect = function($){
     */  
     var updateInterface = (function(){
         /*
-        because the interface has a fixed position, anything that overflows 
-        has to be hidden, so modify which direction the dropdown goes to 
-        prevent it from being cut off
-        */
-        function fixDropdownOverflow(){
-            var interface_left = $('#collect_interface').offset().left,
-                groups = $('.group_options');
-            groups.each(function(){
-                var _this = $(this),
-                    group_left = _this.offset().left;
-                if ( group_left - interface_left < 80 ) {
-                    $('.group_dropdown', _this).css({'left':'0', 'right':''});
-                } else {
-                    $('.group_dropdown', _this).css({'right':'0', 'left':''});
-                }
-            });
-        }
-
-        /*
         uses #seletor_index to exclude values from getting query_check
         positive values remove elements from beginning of the eles array
         negative values remove elements from the end of the eles array
@@ -917,7 +891,6 @@ var makeCollect = function($){
         return function(){
             var selector = baseSelector(),
                 selected;
-            fixDropdownOverflow();
             clearClass('query_check');
             clearClass('collect_highlight');
             $('#collect_error').html('');
@@ -1219,13 +1192,8 @@ var makeCollect = function($){
         }
 
         return "<span class='selector_group no_select'>" + selector +
-                "<span class='group_options no_select'>&#x25bc;" + 
-                    "<div class='group_dropdown no_select'>"+
-                        "<p class='nthchild no_select'>:nth-child</p>" +
-                        "<p class='nthtype no_select'>:nth-of-type</p>" +
-                        "<p class='deltog no_select'>Remove</p>" + 
-                    "</div>" +
-                "</span>" + 
+            "<span class='nthtype no_select' title='add the nth-of-type pseudo selector'>+t</span>" + 
+            "<span class='deltog no_select'>x</span>"+
             "</span>";
     };
 

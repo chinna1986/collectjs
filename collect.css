@@ -163,8 +163,20 @@ included to prevent possible selector collisions on sites the script is run on
 
 #collect_interface .selector_group{
 	white-space: nowrap;
-	padding: 2px 0 2px 2px;
+	padding: 2px 0 0 2px;
 	position: relative;
+	border-bottom: 1px solid #ccc;
+}
+
+#collect_interface .selector_group .deltog, #collect_interface .selector_group .nthtype{
+	cursor: pointer;
+	font-weight: bold;
+	padding: 0 3px 0 2px;
+	color: #ccc;
+}
+
+#collect_interface .selector_group .deltog:hover, #collect_interface .selector_group .nthtype:hover{
+	background: #efefef;
 }
 
 #collect_interface #selector_form label{
@@ -176,39 +188,6 @@ included to prevent possible selector collisions on sites the script is run on
 #collect_interface .off{
 	opacity: 0.4;
 	color: #F05D71;
-}
-
-#collect_interface .group_options{
-	color: #777;
-	padding: 2px;
-	cursor: pointer;
-	position: relative;
-}
-
-#collect_interface .group_dropdown{
-	position: absolute;
-	color: #222;
-	display: none;
-	z-index: 10003;
-	background: #fff;
-	top: 19px;
-	right: 0;
-	width: 80px;
-	border: 1px solid #777;
-}
-
-#collect_interface .group_dropdown p{
-	margin: 0;
-	text-align: right;
-}
-
-#collect_interface .group_dropdown p:hover{
-	background: #666;
-	color: #efefef;
-}
-
-#collect_interface .group_options:hover .group_dropdown{
-	display: block;
 }
 
 #collect_interface #selector_text *{
