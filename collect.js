@@ -233,6 +233,14 @@ var makeCollect = function($){
             event.stopPropagation();
             var selector_span = this.previousElementSibling,
                 selector_name = selector_span.innerHTML;
+            console.log(selector_name);
+            if ( $("#safedelete").is(":checked") ) {
+                var verifyDelete = confirm("Confirm you want to delete group \"" + selector_name + "\"");
+                if ( !verifyDelete ) {
+                    return;
+                }
+            }
+            
             $(this).parents('.collect_group').remove();
             deleteRule(currentGroup(), selector_name);
         }
@@ -554,7 +562,7 @@ var makeCollect = function($){
     options modal and selection options
     */
     function addOptions(){
-        var options_html = "<div id=\"options_background\"></div><section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Hide Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"visible\">Only include visible elements</label><input type=\"checkbox\"  name=\"visible\" id=\"visible\" /></p><a href=\"#\" id=\"close_options\">Close</a></section>",
+        var options_html = "<div id=\"options_background\"></div><section id=\"options_interface\" class=\"options\"><h2 >Options</h2><p><label for=\"tables\">Hide Table Elements</label><input type=\"checkbox\"  name=\"tables\" id=\"tables\" /></p><p><label for=\"visible\">Only include visible elements</label><input type=\"checkbox\"  name=\"visible\" id=\"visible\" /></p><p><label for=\"safedelete\">Confirm before deleting saved rules</label><input type=\"checkbox\"  name=\"safedelete\" id=\"safedelete\" checked=\"checked\"/></p><a href=\"#\" id=\"close_options\">Close</a></section>",
             options_element = $(options_html);
         options_element.appendTo('body');
         $('#options_background, #options_interface, #options_interface *').addClass('no_select');

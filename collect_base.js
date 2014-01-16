@@ -233,6 +233,13 @@ var makeCollect = function($){
             event.stopPropagation();
             var selector_span = this.previousElementSibling,
                 selector_name = selector_span.innerHTML;
+            if ( $("#safedelete").is(":checked") ) {
+                var verifyDelete = confirm("Confirm you want to delete group \"" + selector_name + "\"");
+                if ( !verifyDelete ) {
+                    return;
+                }
+            }
+            
             $(this).parents('.collect_group').remove();
             deleteRule(currentGroup(), selector_name);
         }
