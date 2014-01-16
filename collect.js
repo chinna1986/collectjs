@@ -105,8 +105,37 @@ var makeCollect = function($){
             updateInterface();
         }
 
+        /*
+        if there is a pseudo selector and all other parts of a seletor group are turned off,
+        turn off the pseudo selector as well. If turning on a pseudo selector, turn on the first
+        element of the group as well
+        */
         function toggleOff(event){
-            $(this).toggleClass('off');
+            var _this = $(this),
+                parent = this.parentElement,
+                pseudo = parent.getElementsByClassName('pseudo'),
+                pseudoElement = pseudo.length ? pseudo[0] : undefined,
+                $pseudo = $(pseudoElement),
+                toggleables = parent.getElementsByClassName('toggleable'),
+                offElements = parent.getElementsByClassName('off'),
+                toggleCount = toggleables.length,
+                offCount = offElements.length,
+                turningOn = _this.hasClass('off');
+
+            if ( turningOn ) {
+                // turning on the pseudo element, make sure something else if turned on
+                if ( pseudoElement === this  && offCount === toggleCount ) {
+                    $(toggleables[0]).removeClass('off');
+                }
+            } else {
+                // if turning off last real selector and pseudo selector is on, turn if off as well
+                // but don't turn off if this is pseudoElement
+                if ( pseudoElement !== this && pseudoElement && 
+                    !$pseudo.hasClass('off') && (toggleCount - offCount ) <= 2) {
+                        $pseudo.addClass('off');
+                }
+            }
+            _this.toggleClass('off');
             updateInterface();
         }
 
@@ -233,7 +262,6 @@ var makeCollect = function($){
             event.stopPropagation();
             var selector_span = this.previousElementSibling,
                 selector_name = selector_span.innerHTML;
-            console.log(selector_name);
             if ( $("#safedelete").is(":checked") ) {
                 var verifyDelete = confirm("Confirm you want to delete group \"" + selector_name + "\"");
                 if ( !verifyDelete ) {
