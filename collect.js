@@ -933,15 +933,14 @@ var makeCollect = function($){
         var curr, attr, replace_regexp,
             // match 2+ spaces, newlines, and tabs
             singleSpaceRegexp = /(\s{2,}|[\n\t]+)/g,
-            html = cleanOuterHTML(element).replace(singleSpaceRegexp, ''),
+            html = cleanOuterHTML(element).replace(singleSpaceRegexp, ' '),
             // match all opening html tags along with their attributes
             tags = html.match(/<[^\/].+?>/g),
-            text_val = $(element).text().replace(singleSpaceRegexp, '').replace('&','&amp;'),
+            text_val = $(element).text().replace(singleSpaceRegexp, ' ').replace('&','&amp;'),
             attrs = tagAttributes(tags);               
 
         html = html.replace(/</g,'&lt;').replace(/>/g,'&gt;');
         html = wrapAttributes(html, attrs);
-        
         // create capture spans with 'text' targets on all text
         if ( text_val !== '' ) {
             // concatenate long text with an ellipsis
